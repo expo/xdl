@@ -1,5 +1,15 @@
-let XDL = {
+'use strict';
 
+let XDL = {
+  get Api() { return require('./Api'); },
+  get Config() { return require('./Config'); },
+  get Exp() { return require('./Exp'); },
+  get FileSystem() { return require('./FileSystem'); },
+  get Login() { return require('./Login'); },
+  get PackagerController() { return require('./PackagerController'); },
+  get Simulator() { return require('./Simulator'); },
+  get UrlUtils() { return require('./UrlUtils'); },
+  get UserSettings() { return require('./UserSettings'); },
 };
 
 module.exports = XDL;

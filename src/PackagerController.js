@@ -11,7 +11,7 @@ let events = require('events');
 
 let Api = require('./Api');
 let Exp = require('./Exp');
-let urlUtils = require('./urlUtils');
+let UrlUtils = require('./UrlUtils');
 
 class PackagerController extends events.EventEmitter {
   constructor(opts, app) {
@@ -51,7 +51,7 @@ class PackagerController extends events.EventEmitter {
       forwardPath: (req, res) => {
         let queryString = require('url').parse(req.url).query;
         let platform = req.headers['exponent-platform'] || 'ios';
-        let path = '/' + urlUtils.guessMainModulePath(self.opts.entryPoint);
+        let path = '/' + UrlUtils.guessMainModulePath(self.opts.entryPoint);
         path += '.bundle';
         path += '?';
         if (queryString) {
@@ -66,7 +66,7 @@ class PackagerController extends events.EventEmitter {
       forwardPath: (req, res) => {
         let queryString = require('url').parse(req.url).query;
         let platform = req.headers['exponent-platform'] || 'ios';
-        let path = '/' + urlUtils.guessMainModulePath(self.opts.entryPoint);
+        let path = '/' + UrlUtils.guessMainModulePath(self.opts.entryPoint);
         path += '.map';
         path += '?';
         if (queryString) {
@@ -92,15 +92,15 @@ class PackagerController extends events.EventEmitter {
       let pkg = await Exp.packageJsonForRoot(self.opts.absolutePath).readAsync();
       let manifest = pkg.exp || {};
       // TODO: remove bundlePath
-      let queryParams = urlUtils.constructBundleQueryParams(self._app.getPackagerOpts());
+      let queryParams = UrlUtils.constructBundleQueryParams(self._app.getPackagerOpts());
       manifest.bundlePath = 'bundle?' + queryParams;
       let packagerOpts = self._app.getPackagerOpts();
       packagerOpts.http = true;
       packagerOpts.redirect = false;
       manifest.xde = true;
-      manifest.bundleUrl = urlUtils.constructBundleUrl(self, packagerOpts) + '?' + queryParams;
-      manifest.debuggerHost = urlUtils.constructDebuggerHost(self);
-      manifest.mainModuleName = urlUtils.guessMainModulePath(self.opts.entryPoint);
+      manifest.bundleUrl = UrlUtils.constructBundleUrl(self, packagerOpts) + '?' + queryParams;
+      manifest.debuggerHost = UrlUtils.constructDebuggerHost(self);
+      manifest.mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
 
       let manifestString = JSON.stringify(manifest);
       if (req.headers['exponent-accept-signature'] && self._app.state.user) {

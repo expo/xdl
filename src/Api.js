@@ -3,9 +3,9 @@ import 'instapromise';
 let _ = require('lodash');
 let request = require('request');
 
-let config = require('../config');
-let session = require('./session');
-let userSettings = require('./userSettings');
+let Config = require('./Config');
+let Session = require('./Session');
+let UserSettings = require('./UserSettings');
 
 function ApiError(code, message) {
   let err = new Error(message);
@@ -14,15 +14,15 @@ function ApiError(code, message) {
   return err;
 }
 
-let ROOT_BASE_URL = 'http://' + config.api.host;
-if (config.api.port) {
-  ROOT_BASE_URL += ':' + config.api.port;
+let ROOT_BASE_URL = 'http://' + Config.api.host;
+if (Config.api.port) {
+  ROOT_BASE_URL += ':' + Config.api.port;
 }
 let API_BASE_URL = ROOT_BASE_URL + '/--/api/';
 
 async function _callMethodAsync(url, method, requestBody) {
-  let clientId = await session.clientIdAsync();
-  let {username} = await userSettings.readAsync();
+  let clientId = await Session.clientIdAsync();
+  let {username} = await UserSettings.readAsync();
   let headers = {
     'Exp-ClientId': clientId,
   };
@@ -80,7 +80,7 @@ export default class ApiClient {
   }
 }
 
-ApiClient.host = config.api.host;
-ApiClient.port = config.api.port || 80;
+ApiClient.host = Config.api.host;
+ApiClient.port = Config.api.port || 80;
 
 module.exports = ApiClient;

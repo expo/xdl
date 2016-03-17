@@ -10,8 +10,8 @@ let osascript = require('@exponent/osascript');
 let spawnAsync = require('@exponent/spawn-async');
 
 let Api = require('./Api');
-let metadata = require('./metadata');
-let userSettings = require('./userSettings');
+let Metadata = require('./Metadata');
+let UserSettings = require('./UserSettings');
 
 async function isSimulatorInstalledAsync() {
   let result;
@@ -48,7 +48,7 @@ async function pathToExponentSimulatorAppDirAsync() {
 }
 
 async function pathToExponentSimulatorAppAsync() {
-  let versionInfo = await metadata.reactNativeVersionInfoAsync();
+  let versionInfo = await Metadata.reactNativeVersionInfoAsync();
   let versionPair = [versionInfo.versionDescription, versionInfo.versionSpecific];
   let pkgJson = jsonFile(path.resolve(__dirname, '../../template/package.json'));
   let version = await pkgJson.getAsync('dependencies.react-native');
@@ -90,7 +90,7 @@ async function simulatorAppForReactNativeVersionAsync(versionPair) {
 }
 
 function simulatorCacheDirectory() {
-  let dotExponentDirectory = userSettings.dotExponentDirectory();
+  let dotExponentDirectory = UserSettings.dotExponentDirectory();
   return path.join(dotExponentDirectory, 'simulator-app-cache');
 }
 

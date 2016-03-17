@@ -1,7 +1,7 @@
 
 let Api = require('./Api');
-let password = require('./password');
-let userSettings = require('./userSettings');
+let Password = require('./Password');
+let UserSettings = require('./UserSettings');
 
 async function loginOrAddUserAsync(args) {
 
@@ -12,7 +12,7 @@ async function loginOrAddUserAsync(args) {
     throw new Error("Both `username` and `password` are required to login or add a new user");
   }
 
-  let hashedPassword = password.hashPassword(args.password);
+  let hashedPassword = Password.hashPassword(args.password);
 
   let data = Object.assign({}, args, {hashedPassword});
   delete data.password;
@@ -24,7 +24,7 @@ async function loginOrAddUserAsync(args) {
   if (result.user) {
     delete result.type;
     // console.log("Login as", result);
-    await userSettings.mergeAsync(result.user);
+    await UserSettings.mergeAsync(result.user);
     return result;
   } else {
     return null;
@@ -34,7 +34,7 @@ async function loginOrAddUserAsync(args) {
 
 async function logoutAsync() {
   let result = await Api.callMethodAsync('logout', []);
-  userSettings.deleteKeyAsync('username');
+  UserSettings.deleteKeyAsync('username');
 }
 
 module.exports = {

@@ -1,13 +1,13 @@
 var slugid = require('slugid');
 
-var userSettings = require('./userSettings');
+var UserSettings = require('./UserSettings');
 
 function _newIdentifier(type='c') {
   return type + '-' + slugid.v4();
 }
 
 async function clientIdAsync() {
-  var clientId = await userSettings.getAsync('clientId', null);
+  var clientId = await UserSettings.getAsync('clientId', null);
   if (clientId === null) {
     clientId = _newIdentifier();
     await setClientIdAsync(clientId);
@@ -16,7 +16,7 @@ async function clientIdAsync() {
 }
 
 async function setClientIdAsync(token) {
-  await userSettings.updateAsync('clientId', token);
+  await UserSettings.updateAsync('clientId', token);
   return token;
 }
 

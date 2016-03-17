@@ -5,8 +5,8 @@ let fsExtra = require('fs-extra');
 let mkdirp = require('mkdirp');
 let path = require('path');
 
-let urlUtils = require('./urlUtils');
-let userSettings = require('./userSettings');
+let UrlUtils = require('./UrlUtils');
+let UserSettings = require('./UserSettings');
 
 let TEMPLATE_ROOT = path.resolve(__dirname, '../../template');
 
@@ -32,7 +32,7 @@ async function createNewExpAsync(root, info, opts = {}) {
   let pp = path.parse(root);
   let name = pp.name;
 
-  let author = await userSettings.getAsync('email', null);
+  let author = await UserSettings.getAsync('email', null);
 
   let templatePackageJsonFile = jsonFile(path.join(__dirname, '../../template/package.json'));
   let templatePackageJson = await templatePackageJsonFile.readAsync();
@@ -77,7 +77,7 @@ async function createNewExpAsync(root, info, opts = {}) {
 
 async function saveRecentExpRootAsync(root) {
   // Write the recent Exps JSON file
-  let recentExpsJsonFile = userSettings.recentExpsJsonFile();
+  let recentExpsJsonFile = UserSettings.recentExpsJsonFile();
   let recentExps = await recentExpsJsonFile.readAsync({cantReadFileDefault: []});
   // Filter out copies of this so we don't get dupes in this list
   recentExps = recentExps.filter(function (x) {
@@ -148,7 +148,7 @@ async function getPublishInfoAsync(env, opts) {
   let packageVersion = version;
   let abiVersion = exp.abiVersion;
 
-  let ngrokUrl = urlUtils.constructPublishUrl(packagerController);
+  let ngrokUrl = UrlUtils.constructPublishUrl(packagerController);
   return {
     args: {
       username,
@@ -165,7 +165,7 @@ async function getPublishInfoAsync(env, opts) {
 }
 
 async function recentValidExpsAsync() {
-  let recentExpsJsonFile = userSettings.recentExpsJsonFile();
+  let recentExpsJsonFile = UserSettings.recentExpsJsonFile();
   let recentExps = await recentExpsJsonFile.readAsync({cantReadFileDefault: []});
 
   let results = await Promise.all(recentExps.map(expInfoSafeAsync));
