@@ -3,7 +3,7 @@ let path = require('path');
 let promiseProps = require('promise-props');
 
 async function reactNativeVersionInfoAsync() {
-  let templatePath = path.join(__dirname, '..', '..', 'template');
+  let templatePath = path.join(__dirname, '..', 'template');
   let templatePackage = jsonFile(path.join(templatePath, 'package.json'));
   let reactNativePackage = jsonFile(path.join(templatePath, 'node_modules', 'react-native', 'package.json'));
 
@@ -18,7 +18,7 @@ function templatePackageJsonFile() {
 }
 
 function getTemplatePath() {
-  return path.join(__dirname, '..', '..', 'template');
+  return path.join(__dirname, '..', 'template');
 }
 
 module.exports = {

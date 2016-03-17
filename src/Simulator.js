@@ -43,17 +43,12 @@ async function isSimulatorRunningAsync() {
   return (zeroMeansNo !== '0');
 }
 
-async function pathToExponentSimulatorAppDirAsync() {
-  return path.resolve(__dirname, '../../SimulatorApps/1.2.0/');
-}
-
 async function pathToExponentSimulatorAppAsync() {
   let versionInfo = await Metadata.reactNativeVersionInfoAsync();
   let versionPair = [versionInfo.versionDescription, versionInfo.versionSpecific];
-  let pkgJson = jsonFile(path.resolve(__dirname, '../../template/package.json'));
+  let pkgJson = jsonFile(path.resolve(__dirname, '../template/package.json'));
   let version = await pkgJson.getAsync('dependencies.react-native');
   return await simulatorAppForReactNativeVersionAsync(versionPair)
-  // return path.join(await pathToExponentSimulatorAppDirAsync(), 'Exponent.app');
 }
 
 async function installExponentOnSimulatorAsync() {
@@ -113,7 +108,7 @@ function _escapeForFilesystem(list) {
 function simulatorAppPathForReactNativeVersion(versionPair) {
   // For now, something seems broken about downloading over the Internet, so
   // we'll just copy the Simulator app into this bundle
-  return path.resolve(__dirname, '../../simulator-app/1.3.0/Exponent.app');
+  return path.resolve(__dirname, '../simulator-app/1.3.0/Exponent.app');
   return path.join(simulatorAppDirectoryForReactNativeVersion(versionPair), 'Exponent.app');
 }
 

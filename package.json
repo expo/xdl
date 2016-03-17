@@ -4,11 +4,14 @@
   "description": "The Exponent Development Library",
   "main": "build/xdl.js",
   "files": [
-    "build"
+    "build",
+    "simulator-app",
+    "template.zip"
   ],
   "scripts": {
-    "build": "babel -d build src",
-    "prepublish": "babel -d build src",
+    "build": "zip -r template.zip template && babel -d build src",
+    "prepublish": "zip -r template.zip template && babel -d build src",
+    "postinstall": "unzip template.zip",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
