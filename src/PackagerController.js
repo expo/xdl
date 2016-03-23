@@ -14,10 +14,11 @@ import events from 'events';
 import Api from './Api';
 import Config from './Config';
 import Exp from './Exp';
+import Login from './Login';
 import * as UrlUtils from './UrlUtils';
 
 class PackagerController extends events.EventEmitter {
-  constructor(opts, app) {
+  constructor(opts) {
     super(opts);
 
     let DEFAULT_OPTS = {
@@ -29,7 +30,6 @@ class PackagerController extends events.EventEmitter {
 
     this.opts = Object.assign(DEFAULT_OPTS, opts);
     this._givenOpts = opts;
-    this._app = app;
 
     this._cachedSignedManifest = {
       manifestString: null,
@@ -37,6 +37,12 @@ class PackagerController extends events.EventEmitter {
     };
 
     global._PackagerController = this;
+  }
+
+  static exit() {
+    if (global._PackagerController && global._PackagerController._packager) {
+      global._PackagerController._packager.kill();
+    }
   }
 
   async startOrRestartLocalServerAsync() {
@@ -94,10 +100,10 @@ class PackagerController extends events.EventEmitter {
 
       let pkg = await Exp.packageJsonForRoot(self.opts.absolutePath).readAsync();
       let manifest = pkg.exp || {};
+      let packagerOpts = await Exp.getPackagerOptsAsync(self.opts.absolutePath);
+      let queryParams = UrlUtils.constructBundleQueryParams(packagerOpts);
       // TODO: remove bundlePath
-      let queryParams = UrlUtils.constructBundleQueryParams(self._app.getPackagerOpts());
       manifest.bundlePath = 'bundle?' + queryParams;
-      let packagerOpts = self._app.getPackagerOpts();
       packagerOpts.http = true;
       packagerOpts.redirect = false;
       manifest.xde = true;
@@ -106,11 +112,15 @@ class PackagerController extends events.EventEmitter {
       manifest.mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
 
       let manifestString = JSON.stringify(manifest);
-      if (req.headers['exponent-accept-signature'] && self._app.state.user) {
+      let currentUser = await Login.currentUserAsync();
+      if (req.headers['exponent-accept-signature'] && currentUser) {
         if (self._cachedSignedManifest.manifestString === manifestString) {
           manifestString = self._cachedSignedManifest.signedManifest;
         } else {
-          let publishInfo = await self._app.getPublishInfoAsync();
+          let publishInfo = await Exp.getPublishInfoAsync({
+            username: currentUser.username,
+            packagerController: this,
+          });
           let signedManifest = await Api.callMethodAsync('signManifest', [publishInfo.args], 'post', manifest);
           self._cachedSignedManifest.manifestString = manifestString;
           self._cachedSignedManifest.signedManifest = signedManifest.response;
@@ -247,7 +257,6 @@ class PackagerController extends events.EventEmitter {
       this._packagerExitedFulfill(code);
       this.emit('packager-stopped', code);
     });
-
   }
 
   async _stopPackagerAsync() {
@@ -320,6 +329,10 @@ class PackagerController extends events.EventEmitter {
 
   getProjectShortName() {
     return path.parse(this.opts.absolutePath).base;
+  }
+
+  getRoot() {
+    return this.opts.absolutePath;
   }
 
   async validatePackageJsonAsync() {

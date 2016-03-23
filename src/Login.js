@@ -3,8 +3,18 @@ let Api = require('./Api');
 let Password = require('./Password');
 let UserSettings = require('./UserSettings');
 
-async function loginOrAddUserAsync(args) {
+let _currentUser = null;
 
+async function currentUserAsync() {
+  if (_currentUser) {
+    return _currentUser;
+  }
+
+  await whoamiAsync();
+  return _currentUser;
+}
+
+async function loginOrAddUserAsync(args) {
   // Default to `client` since xde is a client
   args.type = args.type || 'client';
 
@@ -23,21 +33,33 @@ async function loginOrAddUserAsync(args) {
   // console.log("result=", result);
   if (result.user) {
     delete result.type;
+    _currentUser = result.user;
     // console.log("Login as", result);
     await UserSettings.mergeAsync(result.user);
     return result;
   } else {
     return null;
   }
-
 }
 
 async function logoutAsync() {
   let result = await Api.callMethodAsync('logout', []);
   UserSettings.deleteKeyAsync('username');
+  _currentUser = null;
+  return result;
+}
+
+async function whoamiAsync() {
+  let result = await Api.callMethodAsync('whoami', []);
+  if (result.user) {
+    _currentUser = result.user;
+  }
+  return result;
 }
 
 module.exports = {
+  currentUserAsync,
   loginOrAddUserAsync,
   logoutAsync,
+  whoamiAsync,
 };

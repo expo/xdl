@@ -5,6 +5,7 @@ let fsExtra = require('fs-extra');
 let mkdirp = require('mkdirp');
 let path = require('path');
 
+let ProjectSettings = require('./ProjectSettings');
 let UrlUtils = require('./UrlUtils');
 let UserSettings = require('./UserSettings');
 
@@ -121,8 +122,13 @@ async function expInfoSafeAsync(root) {
   }
 }
 
-async function getPublishInfoAsync(env, opts) {
-  let root = env.root;
+async function getPublishInfoAsync(opts) {
+  let {
+    username,
+    packagerController,
+  } = opts;
+
+  let root = packagerController.getRoot();
   let pkgJson = packageJsonForRoot(root);
   let pkg = await pkgJson.readAsync();
   let {
@@ -135,11 +141,6 @@ async function getPublishInfoAsync(env, opts) {
   if (!exp || !exp.sdkVersion) {
     throw new Error(`exp.sdkVersion is missing from package.json file`);
   }
-
-  let {
-    username,
-    packagerController,
-  } = opts;
 
   let remotePackageName = name;
   let remoteUsername = username;
@@ -171,12 +172,27 @@ async function recentValidExpsAsync() {
   let results = await Promise.all(recentExps.map(expInfoSafeAsync));
   let filteredResults = results.filter(result => result);
   return filteredResults.slice(0, 5);
+}
 
+async function getPackagerOptsAsync(projectRoot) {
+  let projectSettings = await ProjectSettings.readAsync(projectRoot);
+
+  return {
+    http: (projectSettings.urlType === 'http'),
+    ngrok: (projectSettings.hostType === 'ngrok'),
+    lan: (projectSettings.hostType === 'lan'),
+    localhost: (projectSettings.hostType === 'localhost'),
+    dev: projectSettings.dev,
+    strict: projectSettings.strict,
+    minify: projectSettings.minify,
+    redirect: (projectSettings.urlType === 'redirect'),
+  };
 }
 
 module.exports = {
   determineEntryPoint,
   createNewExpAsync,
+  getPackagerOptsAsync,
   getPublishInfoAsync,
   saveRecentExpRootAsync,
   recentValidExpsAsync,
