@@ -1,7 +1,5 @@
 'use strict';
 
-import 'babel-polyfill';
-
 let XDL = {
   get Api() { return require('./Api'); },
   get Config() { return require('./Config'); },
