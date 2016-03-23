@@ -1,18 +1,20 @@
-let crayon = require('@ccheever/crayon');
-let ip = require('ip');
-let myLocalIp = require('my-local-ip');
-let os = require('os');
-let url = require('url');
+'use strict';
 
-function constructBundleUrl(packageController, opts) {
+import crayon from '@ccheever/crayon';
+import ip from 'ip';
+import myLocalIp from 'my-local-ip';
+import os from 'os';
+import url from 'url';
+
+export function constructBundleUrl(packageController, opts) {
   return constructUrl(packageController, opts, 'bundle');
 }
 
-function constructManifestUrl(packageController, opts) {
+export function constructManifestUrl(packageController, opts) {
   return constructUrl(packageController, opts, null);
 }
 
-function constructPublishUrl(packageController) {
+export function constructPublishUrl(packageController) {
   return constructBundleUrl(packageController, {
     ngrok: true,
     http: true,
@@ -22,11 +24,11 @@ function constructPublishUrl(packageController) {
   });
 }
 
-function constructDebuggerHost(packageController) {
+export function constructDebuggerHost(packageController) {
   return ip.address() + ':' + packageController.opts.packagerPort;
 }
 
-function constructBundleQueryParams(opts) {
+export function constructBundleQueryParams(opts) {
   let queryParams = 'dev=' + encodeURIComponent(!!opts.dev);
 
   if (opts.hasOwnProperty('strict')) {
@@ -40,7 +42,7 @@ function constructBundleQueryParams(opts) {
   return queryParams;
 }
 
-function constructUrl(packageController, opts, path) {
+export function constructUrl(packageController, opts, path) {
   opts = opts || {};
 
   let protocol = 'exp';
@@ -87,25 +89,34 @@ function constructUrl(packageController, opts, path) {
   return url_;
 }
 
-function expUrlFromHttpUrl(url_) {
+export function expUrlFromHttpUrl(url_) {
   return ('' + url_).replace(/^http(s?)/, 'exp');
 }
 
-function httpUrlFromExpUrl(url_) {
+export function httpUrlFromExpUrl(url_) {
   return ('' + url_).replace(/^exp(s?)/, 'http');
 }
 
-function guessMainModulePath(entryPoint) {
+export function guessMainModulePath(entryPoint) {
   return entryPoint.replace(/\.js$/, '');
 }
 
-module.exports = {
-  constructBundleUrl,
-  constructManifestUrl,
-  constructPublishUrl,
-  constructDebuggerHost,
-  constructBundleQueryParams,
-  expUrlFromHttpUrl,
-  httpUrlFromExpUrl,
-  guessMainModulePath,
-};
+export function randomIdentifier(length=6) {
+  let alphabet = '23456789qwertyuipasdfghjkzxcvbnm';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    let j = Math.floor(Math.random() * alphabet.length);
+    let c = alphabet.substr(j, 1);
+    result += c;
+  }
+  return result;
+
+}
+
+export function sevenDigitIdentifier() {
+  return randomIdentifier(3) + '-' + randomIdentifier(4);
+}
+
+export function randomIdentifierForUser(username) {
+  return username + '-' + randomIdentifier(3) + '-' + randomIdentifier(2);
+}

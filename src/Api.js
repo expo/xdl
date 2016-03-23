@@ -1,3 +1,5 @@
+'use strict';
+
 import 'instapromise';
 
 let _ = require('lodash');

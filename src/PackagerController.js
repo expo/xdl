@@ -1,17 +1,20 @@
-let _ = require('lodash');
-let child_process = require('child_process');
-let crayon = require('@ccheever/crayon');
-let express = require('express');
-let freeportAsync = require('freeport-async');
-let instapromise = require('instapromise');
-let ngrok = require('ngrok');
-let path = require('path');
-let proxy = require('express-http-proxy');
-let events = require('events');
+'use strict';
 
-let Api = require('./Api');
-let Exp = require('./Exp');
-let UrlUtils = require('./UrlUtils');
+import _ from 'lodash';
+import child_process from 'child_process';
+import crayon from '@ccheever/crayon';
+import express from 'express';
+import freeportAsync from 'freeport-async';
+import instapromise from 'instapromise';
+import ngrok from 'ngrok';
+import path from 'path';
+import proxy from 'express-http-proxy';
+import events from 'events';
+
+import Api from './Api';
+import Config from './Config';
+import Exp from './Exp';
+import * as UrlUtils from './UrlUtils';
 
 class PackagerController extends events.EventEmitter {
   constructor(opts, app) {
@@ -139,7 +142,34 @@ class PackagerController extends events.EventEmitter {
 
     this.emit('ngrok-will-start', this.opts.port);
 
-    this._ngrokUrl = await ngrok.promise.connect(this.opts.port);
+    let username = null;
+    try {
+      let result = await Api.callMethodAsync('whoami', []);
+
+      if (result && result.user && result.user.username) {
+        username = result.user.username;
+      }
+    } catch (e) {
+      console.error("Couldn't determine who you are logged in as: " + e);
+    }
+
+    let hostname = null;
+    if (username) {
+      hostname = UrlUtils.randomIdentifierForUser(username) + '.' + Config.ngrok.domain;
+    } else {
+      hostname = UrlUtils.sevenDigitIdentifier() + '.' + Config.ngrok.domain;
+    }
+
+    try {
+      this._ngrokUrl = await ngrok.promise.connect({
+        hostname,
+        authtoken: Config.ngrok.authToken,
+        port: this.opts.port,
+        proto: 'http',
+      });
+    } catch (e) {
+      console.error("Problem with ngrok: " + e);
+    }
 
     this.emit('ngrok-did-start', this.opts.port, this._ngrokUrl);
     this.emit('ngrok-ready', this.opts.port, this._ngrokUrl);
@@ -346,9 +376,10 @@ class PackagerController extends events.EventEmitter {
 
 module.exports = PackagerController;
 
-module.exports.testIntance = function (opts) {
+PackagerController.UrlUtils = UrlUtils;
+PackagerController.testIntance = function (opts) {
   let pc = new PackagerController(Object.assign({}, {
-    absolutePath: '/Users/ccheever/tmp/icecubetray',
+    absolutePath: '/Users/ccheever/tmp/test-proj',
   }, opts));
   pc.on('stdout', crayon.green.log);
   pc.on('stderr', crayon.red.log);
