@@ -6,16 +6,18 @@ import myLocalIp from 'my-local-ip';
 import os from 'os';
 import url from 'url';
 
-export function constructBundleUrl(packageController, opts) {
-  return constructUrl(packageController, opts, 'bundle');
+import ProjectSettings from './ProjectSettings';
+
+export async function constructBundleUrlAsync(projectRoot, opts) {
+  return constructUrlAsync(projectRoot, opts, 'bundle');
 }
 
-export function constructManifestUrl(packageController, opts) {
-  return constructUrl(packageController, opts, null);
+export async function constructManifestUrlAsync(projectRoot, opts) {
+  return constructUrlAsync(projectRoot, opts, null);
 }
 
-export function constructPublishUrl(packageController) {
-  return constructBundleUrl(packageController, {
+export async function constructPublishUrlAsync(projectRoot) {
+  return constructBundleUrlAsync(projectRoot, {
     ngrok: true,
     http: true,
   }) + '?' + constructBundleQueryParams({
@@ -24,8 +26,9 @@ export function constructPublishUrl(packageController) {
   });
 }
 
-export function constructDebuggerHost(packageController) {
-  return ip.address() + ':' + packageController.opts.packagerPort;
+export async function constructDebuggerHostAsync(projectRoot) {
+  let packagerInfo = await ProjectSettings.readPackagerInfoAsync(projectRoot);
+  return ip.address() + ':' + packagerInfo.packagerPort;
 }
 
 export function constructBundleQueryParams(opts) {
@@ -42,8 +45,11 @@ export function constructBundleQueryParams(opts) {
   return queryParams;
 }
 
-export function constructUrl(packageController, opts, path) {
-  opts = opts || {};
+export async function constructUrlAsync(projectRoot, opts, path) {
+  if (!opts) {
+    opts = await ProjectSettings.getPackagerOptsAsync(projectRoot);
+  }
+  let packagerInfo = await ProjectSettings.readPackagerInfoAsync(projectRoot);
 
   let protocol = 'exp';
   if (opts.http) {
@@ -55,15 +61,15 @@ export function constructUrl(packageController, opts, path) {
 
   if (opts.localhost) {
     hostname = 'localhost';
-    port = packageController.opts.port;
+    port = packagerInfo.port;
   } else if (opts.lan) {
     hostname = os.hostname();
-    port = packageController.opts.port;
+    port = packagerInfo.port;
   } else if (opts.lanIp) {
     hostname = myLocalIp;
-    port = packageController.opts.port;
+    port = packagerInfo.port;
   } else {
-    let ngrokUrl = packageController.getNgrokUrl();
+    let ngrokUrl = packagerInfo.ngrok;
     if (!ngrokUrl) {
       throw new Error("Can't get ngrok URL because ngrok not started yet");
     }
@@ -110,7 +116,6 @@ export function randomIdentifier(length=6) {
     result += c;
   }
   return result;
-
 }
 
 export function sevenDigitIdentifier() {

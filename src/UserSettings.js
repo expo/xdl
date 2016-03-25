@@ -5,7 +5,7 @@ var path = require('path');
 
 // TODO: Make this more configurable
 function userSettingsFile() {
-  return path.join(dotExponentDirectory(), 'exponent.json');
+  return path.join(dotExponentHomeDirectory(), 'exponent.json');
 }
 
 function userSettingsJsonFile() {
@@ -13,11 +13,11 @@ function userSettingsJsonFile() {
 }
 
 function recentExpsJsonFile() {
-  return new jsonFile(path.join(dotExponentDirectory(), 'xde-recent-exps.json'));
+  return new jsonFile(path.join(dotExponentHomeDirectory(), 'xde-recent-exps.json'));
 }
 
 var mkdirped = false;
-function dotExponentDirectory() {
+function dotExponentHomeDirectory() {
   if (!process.env.HOME) {
     throw new Error("Can't determine your home directory; make sure your $HOME environment variable is set.");
   }
@@ -32,8 +32,8 @@ function dotExponentDirectory() {
 module.exports = userSettingsJsonFile();
 
 Object.assign(module.exports, {
-  userSettingsJsonFile,
-  userSettingsFile,
-  dotExponentDirectory,
+  dotExponentHomeDirectory,
   recentExpsJsonFile,
+  userSettingsFile,
+  userSettingsJsonFile,
 });

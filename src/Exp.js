@@ -149,7 +149,7 @@ async function getPublishInfoAsync(opts) {
   let packageVersion = version;
   let sdkVersion = exp.sdkVersion;
 
-  let ngrokUrl = UrlUtils.constructPublishUrl(packagerController);
+  let ngrokUrl = await UrlUtils.constructPublishUrlAsync(root);
   return {
     args: {
       username,
@@ -174,25 +174,9 @@ async function recentValidExpsAsync() {
   return filteredResults.slice(0, 5);
 }
 
-async function getPackagerOptsAsync(projectRoot) {
-  let projectSettings = await ProjectSettings.readAsync(projectRoot);
-
-  return {
-    http: (projectSettings.urlType === 'http'),
-    ngrok: (projectSettings.hostType === 'ngrok'),
-    lan: (projectSettings.hostType === 'lan'),
-    localhost: (projectSettings.hostType === 'localhost'),
-    dev: projectSettings.dev,
-    strict: projectSettings.strict,
-    minify: projectSettings.minify,
-    redirect: (projectSettings.urlType === 'redirect'),
-  };
-}
-
 module.exports = {
   determineEntryPoint,
   createNewExpAsync,
-  getPackagerOptsAsync,
   getPublishInfoAsync,
   saveRecentExpRootAsync,
   recentValidExpsAsync,

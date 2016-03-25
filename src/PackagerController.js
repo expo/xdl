@@ -15,6 +15,7 @@ import Api from './Api';
 import Config from './Config';
 import Exp from './Exp';
 import Login from './Login';
+import ProjectSettings from './ProjectSettings';
 import * as UrlUtils from './UrlUtils';
 
 class PackagerController extends events.EventEmitter {
@@ -40,17 +41,22 @@ class PackagerController extends events.EventEmitter {
   }
 
   static exit() {
-    if (global._PackagerController && global._PackagerController._packager) {
-      global._PackagerController._packager.kill();
+    let pc = global._PackagerController;
+    if (pc) {
+      if (pc._expressServer) {
+        pc._expressServer.close();
+      }
+      if (pc._packager) {
+        pc._packager.kill('SIGTERM');
+      }
+      if (pc._ngrokUrl) {
+        ngrok.kill();
+      }
     }
   }
 
   async startOrRestartLocalServerAsync() {
-    if (this._expressServer) {
-      console.log("Waiting for express to close...");
-      await this._expressServer.close();
-      console.log("Closed express; restarting...");
-    }
+    await this._stopLocalServerAsync();
 
     let app = express();
     let self = this;
@@ -100,15 +106,15 @@ class PackagerController extends events.EventEmitter {
 
       let pkg = await Exp.packageJsonForRoot(self.opts.absolutePath).readAsync();
       let manifest = pkg.exp || {};
-      let packagerOpts = await Exp.getPackagerOptsAsync(self.opts.absolutePath);
+      let packagerOpts = await ProjectSettings.getPackagerOptsAsync(self.opts.absolutePath);
       let queryParams = UrlUtils.constructBundleQueryParams(packagerOpts);
       // TODO: remove bundlePath
       manifest.bundlePath = 'bundle?' + queryParams;
       packagerOpts.http = true;
       packagerOpts.redirect = false;
       manifest.xde = true;
-      manifest.bundleUrl = UrlUtils.constructBundleUrl(self, packagerOpts) + '?' + queryParams;
-      manifest.debuggerHost = UrlUtils.constructDebuggerHost(self);
+      manifest.bundleUrl = await UrlUtils.constructBundleUrlAsync(self.getRoot(), packagerOpts) + '?' + queryParams;
+      manifest.debuggerHost = await UrlUtils.constructDebuggerHostAsync(self.getRoot());
       manifest.mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
 
       let manifestString = JSON.stringify(manifest);
@@ -178,7 +184,7 @@ class PackagerController extends events.EventEmitter {
         proto: 'http',
       });
     } catch (e) {
-      console.error("Problem with ngrok: " + e);
+      console.error("Problem with ngrok: " + JSON.stringify(e));
     }
 
     this.emit('ngrok-did-start', this.opts.port, this._ngrokUrl);
@@ -259,6 +265,14 @@ class PackagerController extends events.EventEmitter {
     });
   }
 
+  async _stopLocalServerAsync() {
+    if (this._expressServer) {
+      console.log("Waiting for express to close...");
+      await this._expressServer.close();
+      console.log("Closed express; restarting...");
+    }
+  }
+
   async _stopPackagerAsync() {
     if (this._packager && (!this._packager.killed && (this._packager.exitCode === null))) {
       console.log("Stopping packager...");
@@ -281,7 +295,6 @@ class PackagerController extends events.EventEmitter {
   }
 
   async _stopNgrokAsync() {
-
     if (this._ngrokUrl) {
       this.emit('ngrok-will-disconnect', this._ngrokUrl);
       try {
@@ -297,7 +310,6 @@ class PackagerController extends events.EventEmitter {
         this.emit('ngrok-disconnect-err', e);
       }
     }
-
   }
 
   async startAsync() {
@@ -315,6 +327,12 @@ class PackagerController extends events.EventEmitter {
       this.startOrRestartPackagerAsync(),
       this.startOrRestartNgrokAsync(),
     ]);
+
+    await ProjectSettings.setPackagerInfoAsync(this.opts.absolutePath, {
+      packagerPort: this.opts.packagerPort,
+      port: this.opts.port,
+      ngrok: this.getNgrokUrl(),
+    });
 
     return this;
   }
