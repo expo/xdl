@@ -85,8 +85,8 @@ async function simulatorAppForReactNativeVersionAsync(versionPair) {
 }
 
 function simulatorCacheDirectory() {
-  let dotExponentDirectory = UserSettings.dotExponentDirectory();
-  return path.join(dotExponentDirectory, 'simulator-app-cache');
+  let dotExponentHomeDirectory = UserSettings.dotExponentHomeDirectory();
+  return path.join(dotExponentHomeDirectory, 'simulator-app-cache');
 }
 
 function _escapeForFilesystem(s) {
