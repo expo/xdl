@@ -420,3 +420,11 @@ PackagerController.testIntance = function (opts) {
   pc.startAsync();
   return pc;
 }
+
+PackagerController.jestInstance = (opts) => {
+  // Needs work
+  return new PackagerController({
+    absolutePath: path.resolve(__dirname, '../template'),
+    ...opts,
+  });
+}
