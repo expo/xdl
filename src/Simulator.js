@@ -1,17 +1,21 @@
-let existsAsync = require('exists-async');
-let download = require('download');
-let fs = require('fs');
-let http = require('http');
-let instapromise = require('instapromise');
-let jsonFile = require('@exponent/json-file');
-let md5hex = require('md5hex');
-let path = require('path');
-let osascript = require('@exponent/osascript');
-let spawnAsync = require('@exponent/spawn-async');
+import existsAsync from 'exists-async';
+import download from 'download';
+import execAsync from 'exec-async';
+import find from 'find';
+import fs from 'fs';
+import glob from 'glob';
+import homeDir from 'home-dir';
+import http from 'http';
+import instapromise from 'instapromise';
+import jsonFile from '@exponent/json-file';
+import md5hex from 'md5hex';
+import path from 'path';
+import osascript from '@exponent/osascript';
+import spawnAsync from '@exponent/spawn-async';
 
-let Api = require('./Api');
-let Metadata = require('./Metadata');
-let UserSettings = require('./UserSettings');
+import Api from './Api';
+import Metadata from './Metadata';
+import UserSettings from './UserSettings';
 
 async function isSimulatorInstalledAsync() {
   let result;
@@ -43,11 +47,44 @@ async function isSimulatorRunningAsync() {
   return (zeroMeansNo !== '0');
 }
 
+async function listSimulatorDevicesAsync() {
+  let infoJson = await execAsync('xcrun', ['simctl', 'list', 'devices', '--json']);
+  let info = JSON.parse(infoJson);
+  return info;
+}
+
+async function bootedSimulatorDeviceAsync() {
+  let simulatorDeviceInfo = await listSimulatorDevicesAsync();
+  for (let runtime in simulatorDeviceInfo.devices) {
+    let devices = simulatorDeviceInfo.devices[runtime];
+    for (let i = 0; i < devices.length; i++) {
+      let device = devices[i];
+      if (device.state === 'Booted') {
+        return device;
+      }
+    }
+  }
+  return null;
+}
+
+function dirForSimulatorDevice(udid) {
+  return path.resolve(homeDir(), 'Library/Developer/CoreSimulator/Devices', udid);
+}
+
+async function isExponentAppInstalledOnCurrentBootedSimulatorAsync() {
+  let device = await bootedSimulatorDeviceAsync();
+  if (!device) {
+    return false;
+  }
+  let simDir = await dirForSimulatorDevice(device.udid);
+  let matches = await glob.promise('./data/Containers/Data/Application/*/Library/Caches/Snapshots/host.exp.Exponent', {cwd: simDir});
+  return (matches.length > 0);
+}
+
+
 async function pathToExponentSimulatorAppAsync() {
   let versionInfo = await Metadata.reactNativeVersionInfoAsync();
   let versionPair = [versionInfo.versionDescription, versionInfo.versionSpecific];
-  let pkgJson = jsonFile(path.resolve(__dirname, '../template/package.json'));
-  let version = await pkgJson.getAsync('dependencies.react-native');
   return await simulatorAppForReactNativeVersionAsync(versionPair)
 }
 
@@ -64,7 +101,6 @@ async function simulatorAppForReactNativeVersionAsync(versionPair) {
   // Will download -- if necessary -- and then return the path to the simulator
 
   let p = simulatorAppPathForReactNativeVersion(versionPair);
-  // console.log("path=", p);
   if (await existsAsync(p)) {
     return p;
   } else {
@@ -112,6 +148,7 @@ function simulatorAppPathForReactNativeVersion(versionPair) {
   return path.join(simulatorAppDirectoryForReactNativeVersion(versionPair), 'Exponent.app');
 }
 
+
 function simulatorAppDirectoryForReactNativeVersion(versionPair) {
   // console.log("version=", version);
   return path.join(simulatorCacheDirectory(), _escapeForFilesystem(versionPair));
@@ -119,7 +156,11 @@ function simulatorAppDirectoryForReactNativeVersion(versionPair) {
 
 module.exports = {
   _escapeForFilesystem,
+  bootedSimulatorDeviceAsync,
+  dirForSimulatorDevice,
+  listSimulatorDevicesAsync,
   installExponentOnSimulatorAsync,
+  isExponentAppInstalledOnCurrentBootedSimulatorAsync,
   isSimulatorInstalledAsync,
   isSimulatorRunningAsync,
   openSimulatorAsync,

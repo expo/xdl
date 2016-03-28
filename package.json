@@ -39,6 +39,8 @@
     "freeport-async": "^1.1.0",
     "fs-extra": "^0.26.5",
     "git-info-async": "^1.1.0",
+    "glob": "^7.0.3",
+    "home-dir": "^1.0.0",
     "instapromise": "^2.0.2",
     "ip": "^1.1.2",
     "lodash": "^4.6.1",
