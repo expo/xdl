@@ -1,5 +1,5 @@
 jest.unmock('../')
-jest.autoMockOff();
+// jest.autoMockOff();
 
 describe('startInstance', () => {
   pit("Creates an instance of a PackagerController and starts it", async () => {
