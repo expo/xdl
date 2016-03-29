@@ -120,6 +120,24 @@ async function simulatorAppForReactNativeVersionAsync(versionPair) {
 
 }
 
+async function uninstallExponentAppFromSimulatorAsync() {
+  try {
+    let result = await execAsync('xcrun', ['simctl', 'uninstall', 'booted', 'host.exp.Exponent']);
+    return true;
+  } catch (e) {
+    if (e.message === 'Command failed: xcrun simctl uninstall booted host.exp.Exponent\nNo devices are booted.\n') {
+      return null;
+    } else {
+      console.error(e);
+      throw e;
+    }
+  }
+}
+
+async function quitSimulatorAsync() {
+  return await osascript.execAsync('tell application "Simulator" to quit');
+}
+
 function simulatorCacheDirectory() {
   let dotExponentHomeDirectory = UserSettings.dotExponentHomeDirectory();
   return path.join(dotExponentHomeDirectory, 'simulator-app-cache');
@@ -166,6 +184,8 @@ module.exports = {
   openSimulatorAsync,
   openUrlInSimulatorAsync,
   pathToExponentSimulatorAppAsync,
+  quitSimulatorAsync,
   simulatorCacheDirectory,
   simulatorAppForReactNativeVersionAsync,
+  uninstallExponentAppFromSimulatorAsync,
 };
