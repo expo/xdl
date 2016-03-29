@@ -1,6 +1,7 @@
 'use strict';
 
 import delayAsync from 'delay-async';
+import promisePrint from 'promise-print';
 
 import xdl from '../../';
 
@@ -60,5 +61,5 @@ module.exports = {
 }
 
 if (require.main === module) {
-  testSimulatorAsync().then(console.log, console.error);
+  promisePrint(testSimulatorAsync());
 }

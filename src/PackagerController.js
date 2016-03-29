@@ -337,6 +337,14 @@ class PackagerController extends events.EventEmitter {
     return this;
   }
 
+  async stopAsync() {
+    return await Promise.all([
+      this._stopPackagerAsync(),
+      this._stopNgrokAsync(),
+      this._stopLocalServerAsync(),
+    ]);
+  }
+
   async getNgrokUrlAsync() {
     return this._ngrokUrl;
   }
