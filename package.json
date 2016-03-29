@@ -9,8 +9,8 @@
     "template.zip"
   ],
   "scripts": {
-    "build": "zip -r template.zip template && babel -d build src",
-    "prepublish": "zip -r template.zip template && babel -d build src",
+    "build": "zip -ry template.zip template && babel -d build src",
+    "prepublish": "zip -ry template.zip template && babel -d build src",
     "postinstall": "if [ -f template.zip ]; then unzip template.zip; fi || true",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
