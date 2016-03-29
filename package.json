@@ -70,11 +70,6 @@
     "babel-preset-stage-1": "^6.5.0",
     "gulp": "gulpjs/gulp#4.0",
     "gulp-shell": "^0.5.2",
-<<<<<<< 6125eadf6b1bfca72590c74cfaf513314baecf4a
-=======
-    "jasmine": "^2.4.1",
-    "jasmine-pit": "^2.0.2",
->>>>>>> Experimenting with trying plain jasmine (not jest)
     "jest-cli": "^0.9.2"
   }
 }
