@@ -17,10 +17,12 @@ export async function constructManifestUrlAsync(projectRoot, opts) {
 }
 
 export async function constructPublishUrlAsync(projectRoot) {
-  return constructBundleUrlAsync(projectRoot, {
+  let bundleUrl = await constructBundleUrlAsync(projectRoot, {
     ngrok: true,
     http: true,
-  }) + '?' + constructBundleQueryParams({
+  });
+
+  return bundleUrl + '?' + constructBundleQueryParams({
     dev: false,
     minify: true,
   });
