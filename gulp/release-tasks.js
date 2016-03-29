@@ -13,7 +13,7 @@ const paths = {
 let tasks = {
   async archiveTemplate() {
     await verifyNodeModulesAsync();
-    await spawnAsync('zip', ['-rqy9', 'template.zip', 'template'], {
+    await spawnAsync('zip', ['-rq9', 'template.zip', 'template'], {
       stdio: 'inherit',
       cwd: path.resolve(__dirname, '..'),
     });
