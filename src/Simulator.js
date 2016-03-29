@@ -7,7 +7,6 @@ import fs from 'fs';
 import glob from 'glob';
 import homeDir from 'home-dir';
 import http from 'http';
-import instapromise from 'instapromise';
 import md5hex from 'md5hex';
 import path from 'path';
 import osascript from '@exponent/osascript';
