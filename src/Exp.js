@@ -26,7 +26,6 @@ function packageJsonForRoot(root) {
 async function determineEntryPointAsync(root) {
   let pkgJson = packageJsonForRoot(root);
   let main = await pkgJson.getAsync('main', 'index.js');
-  console.log("main=", main);
   return main;
 }
 
