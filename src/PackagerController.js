@@ -103,7 +103,11 @@ class PackagerController extends events.EventEmitter {
     // Serve the manifest.
     let manifestHandler = async (req, res) => {
       try {
-        await self.validatePackageJsonAsync();
+
+        // N.B. We intentionally don't `await` this. We want to continue trying even
+        //  if there is a potential error in the package.json and don't want to slow
+        //  down the request
+        self.validatePackageJsonAsync();
 
         let pkg = await Exp.packageJsonForRoot(self.opts.absolutePath).readAsync();
         let manifest = pkg.exp || {};
@@ -437,7 +441,7 @@ module.exports = PackagerController;
 PackagerController.testInstance = (opts) => {
   let pc = new PackagerController({
     absolutePath: path.resolve(__dirname, '../template'),
-    // entryPoint: path.resolve(__dirname, '../template/main.js'), 
+    // we just let entryPoint get determined automatically by the PackagerController
     ...opts,
   });
   pc.on('stdout', crayon.green.log);
