@@ -23,10 +23,10 @@ function packageJsonForRoot(root) {
   return new JsonFile(path.join(root, 'package.json'));
 }
 
-async function determineEntryPoint(root) {
+async function determineEntryPointAsync(root) {
   let pkgJson = packageJsonForRoot(root);
   let main = await pkgJson.getAsync('main', 'index.js');
-  // console.log("main=", main);
+  console.log("main=", main);
   return main;
 }
 
@@ -176,7 +176,7 @@ async function recentValidExpsAsync() {
 }
 
 module.exports = {
-  determineEntryPoint,
+  determineEntryPointAsync,
   createNewExpAsync,
   getPublishInfoAsync,
   saveRecentExpRootAsync,

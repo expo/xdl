@@ -102,39 +102,45 @@ class PackagerController extends events.EventEmitter {
 
     // Serve the manifest.
     let manifestHandler = async (req, res) => {
-      self.validatePackageJsonAsync();
+      try {
+        await self.validatePackageJsonAsync();
 
-      let pkg = await Exp.packageJsonForRoot(self.opts.absolutePath).readAsync();
-      let manifest = pkg.exp || {};
-      let packagerOpts = await ProjectSettings.getPackagerOptsAsync(self.opts.absolutePath);
-      let queryParams = UrlUtils.constructBundleQueryParams(packagerOpts);
-      // TODO: remove bundlePath
-      manifest.bundlePath = 'bundle?' + queryParams;
-      packagerOpts.http = true;
-      packagerOpts.redirect = false;
-      manifest.xde = true;
-      manifest.bundleUrl = await UrlUtils.constructBundleUrlAsync(self.getRoot(), packagerOpts) + '?' + queryParams;
-      manifest.debuggerHost = await UrlUtils.constructDebuggerHostAsync(self.getRoot());
-      manifest.mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
+        let pkg = await Exp.packageJsonForRoot(self.opts.absolutePath).readAsync();
+        let manifest = pkg.exp || {};
+        let packagerOpts = await ProjectSettings.getPackagerOptsAsync(self.opts.absolutePath);
+        let queryParams = UrlUtils.constructBundleQueryParams(packagerOpts);
+        // TODO: remove bundlePath
+        manifest.bundlePath = 'bundle?' + queryParams;
+        packagerOpts.http = true;
+        packagerOpts.redirect = false;
+        manifest.xde = true;
+        manifest.bundleUrl = await UrlUtils.constructBundleUrlAsync(self.getRoot(), packagerOpts) + '?' + queryParams;
+        manifest.debuggerHost = await UrlUtils.constructDebuggerHostAsync(self.getRoot());
+        manifest.mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
 
-      let manifestString = JSON.stringify(manifest);
-      let currentUser = await Login.currentUserAsync();
-      if (req.headers['exponent-accept-signature'] && currentUser) {
-        if (self._cachedSignedManifest.manifestString === manifestString) {
-          manifestString = self._cachedSignedManifest.signedManifest;
-        } else {
-          let publishInfo = await Exp.getPublishInfoAsync({
-            username: currentUser.username,
-            packagerController: this,
-          });
-          let signedManifest = await Api.callMethodAsync('signManifest', [publishInfo.args], 'post', manifest);
-          self._cachedSignedManifest.manifestString = manifestString;
-          self._cachedSignedManifest.signedManifest = signedManifest.response;
-          manifestString = signedManifest.response;
+        let manifestString = JSON.stringify(manifest);
+        let currentUser = await Login.currentUserAsync();
+        if (req.headers['exponent-accept-signature'] && currentUser) {
+          if (self._cachedSignedManifest.manifestString === manifestString) {
+            manifestString = self._cachedSignedManifest.signedManifest;
+          } else {
+            let publishInfo = await Exp.getPublishInfoAsync({
+              username: currentUser.username,
+              packagerController: this,
+            });
+            let signedManifest = await Api.callMethodAsync('signManifest', [publishInfo.args], 'post', manifest);
+            self._cachedSignedManifest.manifestString = manifestString;
+            self._cachedSignedManifest.signedManifest = signedManifest.response;
+            manifestString = signedManifest.response;
+          }
         }
-      }
 
-      res.send(manifestString);
+        res.send(manifestString);
+      } catch (e) {
+        console.error("Error in manifestHandler:", e);
+        // 5xx = Server Error HTTP code
+        res.status(520).send({"error": e.toString()});
+      }
     };
 
     app.get('/', manifestHandler);
@@ -199,7 +205,7 @@ class PackagerController extends events.EventEmitter {
       throw new Error("`this.opts.packagerPort` must be set before starting the packager!");
     }
 
-    let root = this.opts.absolutePath;
+    let root = this.getRoot();
     if (!root) {
       throw new Error("`this.opts.absolutePath` must be set to start the packager!");
     }
@@ -315,7 +321,12 @@ class PackagerController extends events.EventEmitter {
   async startAsync() {
     this.validatePackageJsonAsync();
 
-    // let root = this.opts.absolutePath;
+    if (!this.opts.entryPoint) {
+      console.log("Determining entry point automatically...");
+      this.opts.entryPoint = await Exp.determineEntryPointAsync(this.getRoot());
+      console.log("Entry point: " + this.opts.entryPoint);
+    }
+
     if (!this.opts.port || !this.opts.packagerPort) {
       let ports = await freeportAsync.rangeAsync(2, 19000);
       this.opts.port = ports[0];
@@ -346,11 +357,19 @@ class PackagerController extends events.EventEmitter {
   }
 
   async getNgrokUrlAsync() {
-    return this._ngrokUrl;
+    return this.getNgrokUrl();
   }
 
   getNgrokUrl() {
-    return this._ngrokUrl;
+    if (this._ngrokUrl) {
+      // ngrok reports https URLs, but to use https/TLS, we actually need to do a bunch of steps
+      // to set up the certificates. Those are (somewhat) documented here:
+      // https://ngrok.com/docs#tls-cert-warnings
+      // Until we have that setup properly, we'll transform these URLs into http URLs
+      return this._ngrokUrl.replace(/^https/, 'http');
+    } else {
+      return this._ngrokUrl;
+    }
   }
 
   getProjectShortName() {
@@ -415,24 +434,18 @@ class PackagerController extends events.EventEmitter {
 
 module.exports = PackagerController;
 
-PackagerController.UrlUtils = UrlUtils;
-PackagerController.testIntance = function (opts) {
-  let pc = new PackagerController(Object.assign({}, {
-    absolutePath: '/Users/ccheever/tmp/test-proj',
-  }, opts));
+PackagerController.testInstance = (opts) => {
+  let pc = new PackagerController({
+    absolutePath: path.resolve(__dirname, '../template'),
+    // entryPoint: path.resolve(__dirname, '../template/main.js'), 
+    ...opts,
+  });
   pc.on('stdout', crayon.green.log);
   pc.on('stderr', crayon.red.log);
   pc.on('packager-stopped', () => {
     crayon.orange('packager-stopped');
   });
-  pc.startAsync();
   return pc;
-}
 
-PackagerController.jestInstance = (opts) => {
-  // Needs work
-  return new PackagerController({
-    absolutePath: path.resolve(__dirname, '../template'),
-    ...opts,
-  });
+
 }

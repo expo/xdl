@@ -10,7 +10,7 @@ module.exports = {
     }
 
     if (!env.entryPoint) {
-      env.entryPoint = await Exp.determineEntryPoint(env.root);
+      env.entryPoint = await Exp.determineEntryPointAsync(env.root);
     }
 
     let pc = new PackagerController({
