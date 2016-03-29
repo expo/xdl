@@ -15,7 +15,7 @@
     "build": "gulp build",
     "prepublish": "gulp release",
     "postinstall": "if [ -f template.zip ]; then unzip template.zip; fi || true",
-    "test": "jest",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
