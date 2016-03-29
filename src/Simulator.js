@@ -1,9 +1,8 @@
-require('instapromise');
+import 'instapromise';
 
 import existsAsync from 'exists-async';
 import download from 'download';
 import execAsync from 'exec-async';
-import find from 'find';
 import fs from 'fs';
 import glob from 'glob';
 import homeDir from 'home-dir';
