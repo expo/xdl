@@ -1,5 +1,7 @@
-var instapromise = require('instapromise');
-var jsonFile = require('@exponent/json-file');
+require('instapromise');
+
+var JsonFile = require('@exponent/json-file');
+
 var mkdirp = require('mkdirp');
 var path = require('path');
 
@@ -9,11 +11,11 @@ function userSettingsFile() {
 }
 
 function userSettingsJsonFile() {
-  return new jsonFile(userSettingsFile(), {cantReadFileDefault:{}});
+  return new JsonFile(userSettingsFile(), {cantReadFileDefault:{}});
 }
 
 function recentExpsJsonFile() {
-  return new jsonFile(path.join(dotExponentHomeDirectory(), 'xde-recent-exps.json'));
+  return new JsonFile(path.join(dotExponentHomeDirectory(), 'xde-recent-exps.json'));
 }
 
 var mkdirped = false;

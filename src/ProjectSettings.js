@@ -1,6 +1,8 @@
+require('instapromise');
+
+var JsonFile = require('@exponent/json-file');
+
 var fs = require('fs');
-var instapromise = require('instapromise');
-var jsonFile = require('@exponent/json-file');
 var mkdirp = require('mkdirp');
 var path = require('path');
 
@@ -15,7 +17,7 @@ var projectSettingsDefaults = {
 var packagerInfoFile = 'packager-info.json';
 
 function projectSettingsJsonFile(projectRoot, filename) {
-  return new jsonFile(path.join(dotExponentProjectDirectory(projectRoot), filename));
+  return new JsonFile(path.join(dotExponentProjectDirectory(projectRoot), filename));
 }
 
 async function readAsync(projectRoot) {

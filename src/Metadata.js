@@ -1,11 +1,12 @@
-let jsonFile = require('@exponent/json-file');
+let JsonFile = require('@exponent/json-file');
+
 let path = require('path');
 let promiseProps = require('promise-props');
 
 async function reactNativeVersionInfoAsync() {
   let templatePath = path.join(__dirname, '..', 'template');
-  let templatePackage = jsonFile(path.join(templatePath, 'package.json'));
-  let reactNativePackage = jsonFile(path.join(templatePath, 'node_modules', 'react-native', 'package.json'));
+  let templatePackage = new JsonFile(path.join(templatePath, 'package.json'));
+  let reactNativePackage = new JsonFile(path.join(templatePath, 'node_modules', 'react-native', 'package.json'));
 
   return await promiseProps({
     versionDescription: templatePackage.getAsync('dependencies.react-native'),
@@ -14,7 +15,7 @@ async function reactNativeVersionInfoAsync() {
 }
 
 function templatePackageJsonFile() {
-  return jsonFile(path.join(templatePath, 'package.json'));
+  return new JsonFile(path.join(templatePath, 'package.json'));
 }
 
 function getTemplatePath() {

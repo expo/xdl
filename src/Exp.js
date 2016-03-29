@@ -1,4 +1,5 @@
-let jsonFile = require('@exponent/json-file');
+let JsonFile = require('@exponent/json-file');
+
 let existsAsync = require('exists-async');
 let fs = require('fs');
 let fsExtra = require('fs-extra');
@@ -19,7 +20,7 @@ function NewExpError(code, message) {
 }
 
 function packageJsonForRoot(root) {
-  return jsonFile(path.join(root, 'package.json'));
+  return new JsonFile(path.join(root, 'package.json'));
 }
 
 async function determineEntryPoint(root) {
@@ -35,7 +36,7 @@ async function createNewExpAsync(root, info, opts = {}) {
 
   let author = await UserSettings.getAsync('email', null);
 
-  let templatePackageJsonFile = jsonFile(path.join(__dirname, '../template/package.json'));
+  let templatePackageJsonFile = new JsonFile(path.join(__dirname, '../template/package.json'));
   let templatePackageJson = await templatePackageJsonFile.readAsync();
 
   info = Object.assign(info, templatePackageJson);
@@ -51,7 +52,7 @@ async function createNewExpAsync(root, info, opts = {}) {
     // },
   }, info);
 
-  let pkgJson = jsonFile(path.join(root, 'package.json'));
+  let pkgJson = new JsonFile(path.join(root, 'package.json'));
 
   let exists = await existsAsync(pkgJson.file);
   if (exists && !opts.force) {

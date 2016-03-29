@@ -1,9 +1,11 @@
+require('instapromise');
+
+let JsonFile = require('@exponent/json-file');
+
 let existsAsync = require('exists-async');
 let download = require('download');
 let fs = require('fs');
 let http = require('http');
-let instapromise = require('instapromise');
-let jsonFile = require('@exponent/json-file');
 let md5hex = require('md5hex');
 let path = require('path');
 let osascript = require('@exponent/osascript');
@@ -46,7 +48,7 @@ async function isSimulatorRunningAsync() {
 async function pathToExponentSimulatorAppAsync() {
   let versionInfo = await Metadata.reactNativeVersionInfoAsync();
   let versionPair = [versionInfo.versionDescription, versionInfo.versionSpecific];
-  let pkgJson = jsonFile(path.resolve(__dirname, '../template/package.json'));
+  let pkgJson = new JsonFile(path.resolve(__dirname, '../template/package.json'));
   let version = await pkgJson.getAsync('dependencies.react-native');
   return await simulatorAppForReactNativeVersionAsync(versionPair)
 }
