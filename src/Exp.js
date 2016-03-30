@@ -6,6 +6,8 @@ let fsExtra = require('fs-extra');
 let mkdirp = require('mkdirp');
 let path = require('path');
 
+let Api = require('./Api');
+let Login = require('./Login');
 let ProjectSettings = require('./ProjectSettings');
 let UrlUtils = require('./UrlUtils');
 let UserSettings = require('./UserSettings');
@@ -122,13 +124,8 @@ async function expInfoSafeAsync(root) {
   }
 }
 
-async function getPublishInfoAsync(opts) {
-  let {
-    username,
-    packagerController,
-  } = opts;
-
-  let root = packagerController.getRoot();
+async function getPublishInfoAsync(root) {
+  let username = (await Login.currentUserAsync()).username;
   let pkgJson = packageJsonForRoot(root);
   let pkg = await pkgJson.readAsync();
   let {
@@ -174,11 +171,27 @@ async function recentValidExpsAsync() {
   return filteredResults.slice(0, 5);
 }
 
+async function publishAsync(root, opts) {
+  let publishInfo = await getPublishInfoAsync(root);
+  if (opts) {
+    publishInfo.args = Object.assign(publishInfo.args, opts);
+  }
+  let result = await Api.callMethodAsync('publish', [publishInfo.args], 'post', publishInfo.body);
+  return result;
+}
+
+async function sendAsync(recipient, url_) {
+  let result = await Api.callMethodAsync('send', [recipient, url_]);
+  return result;
+}
+
 module.exports = {
-  determineEntryPointAsync,
   createNewExpAsync,
+  determineEntryPointAsync,
   getPublishInfoAsync,
-  saveRecentExpRootAsync,
-  recentValidExpsAsync,
   packageJsonForRoot,
+  publishAsync,
+  recentValidExpsAsync,
+  saveRecentExpRootAsync,
+  sendAsync,
 };

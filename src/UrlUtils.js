@@ -48,9 +48,13 @@ export function constructBundleQueryParams(opts) {
 }
 
 export async function constructUrlAsync(projectRoot, opts, path) {
+  let defaultOpts = await ProjectSettings.getPackagerOptsAsync(projectRoot);
   if (!opts) {
-    opts = await ProjectSettings.getPackagerOptsAsync(projectRoot);
+    opts = defaultOpts;
+  } else {
+    opts = Object.assign(defaultOpts, opts);
   }
+
   let packagerInfo = await ProjectSettings.readPackagerInfoAsync(projectRoot);
 
   let protocol = 'exp';
