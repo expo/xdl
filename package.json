@@ -29,7 +29,7 @@
   "homepage": "https://github.com/exponentjs/xdl#readme",
   "dependencies": {
     "@ccheever/crayon": "^5.0.0",
-    "@exponent/json-file": "^4.0.0",
+    "@exponent/json-file": "^5.0.0",
     "@exponent/osascript": "^1.5.1",
     "babel-runtime": "^6.6.1",
     "download": "^4.4.3",

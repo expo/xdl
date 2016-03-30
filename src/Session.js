@@ -16,7 +16,7 @@ async function clientIdAsync() {
 }
 
 async function setClientIdAsync(token) {
-  await UserSettings.updateAsync('clientId', token);
+  await UserSettings.setAsync('clientId', token);
   return token;
 }
 
