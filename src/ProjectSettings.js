@@ -1,20 +1,20 @@
-require('instapromise');
+import instapromise from 'instapromise';
 
-var JsonFile = require('@exponent/json-file');
+import fs from 'fs';
+import JsonFile from '@exponent/json-file';
+import mkdirp from 'mkdirp';
+import path from 'path';
 
-var fs = require('fs');
-var mkdirp = require('mkdirp');
-var path = require('path');
-
-var projectSettingsFile = 'settings.json';
-var projectSettingsDefaults = {
+let projectSettingsFile = 'settings.json';
+let projectSettingsDefaults = {
   hostType: 'ngrok',
   dev: true,
   strict: false,
   minify: false,
   urlType: 'exp',
+  urlRandomness: null,
 };
-var packagerInfoFile = 'packager-info.json';
+let packagerInfoFile = 'packager-info.json';
 
 function projectSettingsJsonFile(projectRoot, filename) {
   return new JsonFile(path.join(dotExponentProjectDirectory(projectRoot), filename));

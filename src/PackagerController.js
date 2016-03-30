@@ -141,7 +141,7 @@ class PackagerController extends events.EventEmitter {
 
         res.send(manifestString);
       } catch (e) {
-        console.error("Error in manifestHandler:", e);
+        console.error("Error in manifestHandler:", e, e.stack);
         // 5xx = Server Error HTTP code
         res.status(520).send({"error": e.toString()});
       }
@@ -159,6 +159,25 @@ class PackagerController extends events.EventEmitter {
     });
   }
 
+  async getUsernameAsync() {
+    let user = await Login.currentUserAsync();
+    if (user) {
+      return user.username;
+    } else {
+      return null;
+    }
+  }
+
+  async getRandomnessAsync() {
+    let ps = await ProjectSettings.readAsync(this.opts.absolutePath);
+    let randomness = ps.urlRandomness;
+    if (!randomness) {
+      randomness = UrlUtils.someRandomness();
+      ProjectSettings.setAsync(this.opts.absolutePath, {'urlRandomness': randomness});
+    }
+    return randomness;
+  }
+
   async startOrRestartNgrokAsync() {
     if (this._ngrokUrl) {
       console.log("Waiting for ngrok to disconnect...");
@@ -168,23 +187,16 @@ class PackagerController extends events.EventEmitter {
 
     this.emit('ngrok-will-start', this.opts.port);
 
-    let username = null;
-    try {
-      let result = await Api.callMethodAsync('whoami', []);
-
-      if (result && result.user && result.user.username) {
-        username = result.user.username;
-      }
-    } catch (e) {
-      console.error("Couldn't determine who you are logged in as: " + e);
+    // Don't try to parallelize these because they both might
+    // mess with the same settings.json file, which could get gnarly
+    let username = await this.getUsernameAsync();
+    let packageShortName = this.getProjectShortName();
+    if (!username) {
+      username = await this.getLoggedOutPlaceholderUsernameAsync();
     }
+    let randomness = await this.getRandomnessAsync();
 
-    let hostname = null;
-    if (username) {
-      hostname = UrlUtils.randomIdentifierForUser(username) + '.' + Config.ngrok.domain;
-    } else {
-      hostname = UrlUtils.sevenDigitIdentifier() + '.' + Config.ngrok.domain;
-    }
+    let hostname = [randomness, UrlUtils.domainify(username), UrlUtils.domainify(packageShortName), Config.ngrok.domain].join('.');
 
     try {
       this._ngrokUrl = await ngrok.promise.connect({
@@ -202,6 +214,15 @@ class PackagerController extends events.EventEmitter {
 
     console.log("Connected ngrok to port " + this.opts.port + " via " + this._ngrokUrl);
     return this._ngrokUrl;
+  }
+
+  async getLoggedOutPlaceholderUsernameAsync() {
+    let lpu = await UserSettings.getAsync('loggedOutPlaceholderUsername', null);
+    if (!lpu) {
+      let lpu = UrlUtils.randomIdentifierForLoggedOutUser();
+      await UserSettings.updateAsync('loggedOutPlaceholderUsername', lpu);
+    }
+    return lpu;
   }
 
   async startOrRestartPackagerAsync(options = {}) {
@@ -438,14 +459,22 @@ class PackagerController extends events.EventEmitter {
 
 module.exports = PackagerController;
 
+function _rstrip(s) {
+  if (s) {
+    return s.replace(/\s*$/, '');
+  } else {
+    return s;
+  }
+}
+
 PackagerController.testInstance = (opts) => {
   let pc = new PackagerController({
     absolutePath: path.resolve(__dirname, '../template'),
     // we just let entryPoint get determined automatically by the PackagerController
     ...opts,
   });
-  pc.on('stdout', crayon.green.log);
-  pc.on('stderr', crayon.red.log);
+  pc.on('stdout', (line) => { crayon.green.log(_rstrip(line)); });
+  pc.on('stderr', (line) => { crayon.red.log(_rstrip(line)); });
   pc.on('packager-stopped', () => {
     crayon.orange('packager-stopped');
   });

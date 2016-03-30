@@ -127,3 +127,17 @@ export function sevenDigitIdentifier() {
 export function randomIdentifierForUser(username) {
   return username + '-' + randomIdentifier(3) + '-' + randomIdentifier(2);
 }
+
+
+export function randomIdentifierForLoggedOutUser() {
+  // TODO: Disallow usernames that start with `00-`
+  return '00-' + sevenDigitIdentifier();
+}
+
+export function someRandomness() {
+  return [randomIdentifier(2), randomIdentifier(3)].join('-');
+}
+
+export function domainify(s) {
+  return s.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+/, '').replace(/-+$/, '');
+}
