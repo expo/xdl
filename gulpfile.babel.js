@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import 'instapromise';
 
 import gulp from 'gulp';
