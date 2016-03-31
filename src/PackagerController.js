@@ -128,10 +128,7 @@ class PackagerController extends events.EventEmitter {
           if (self._cachedSignedManifest.manifestString === manifestString) {
             manifestString = self._cachedSignedManifest.signedManifest;
           } else {
-            let publishInfo = await Exp.getPublishInfoAsync({
-              username: currentUser.username,
-              packagerController: this,
-            });
+            let publishInfo = await Exp.getPublishInfoAsync(self.getRoot());
             let signedManifest = await Api.callMethodAsync('signManifest', [publishInfo.args], 'post', manifest);
             self._cachedSignedManifest.manifestString = manifestString;
             self._cachedSignedManifest.signedManifest = signedManifest.response;
