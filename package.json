@@ -14,7 +14,7 @@
   "scripts": {
     "build": "gulp build",
     "prepublish": "gulp release",
-    "postinstall": "if [ -f template.zip ]; then unzip -q template.zip; fi || true",
+    "postinstall": "if [ -f template.zip ]; then unzip -qo template.zip; fi || true",
     "test": "node ./build/__tests__/Simulator-test.js"
   },
   "repository": {
