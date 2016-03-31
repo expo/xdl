@@ -15,7 +15,7 @@
     "build": "gulp build",
     "prepublish": "gulp release",
     "postinstall": "if [ -f template.zip ]; then unzip -qo template.zip; fi || true",
-    "test": "node ./build/__tests__/Simulator-test.js"
+    "test": "node ./build/__tests__/Simulator-test.js && node ./build/__tests__/Ngrok-test.js && echo '√ All Tests Passed' || echo '✘ Tests Failed'"
   },
   "repository": {
     "type": "git",
