@@ -1,6 +1,7 @@
 'use strict';
 
 let XDL = {
+  get Android() { return require('./Android'); },
   get Api() { return require('./Api'); },
   get Config() { return require('./Config'); },
   get Exp() { return require('./Exp'); },

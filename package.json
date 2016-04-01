@@ -1,12 +1,13 @@
 {
   "name": "xdl",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "The Exponent Development Library",
   "main": "build/xdl.js",
   "files": [
     "build",
     "simulator-app",
-    "template.zip"
+    "template.zip",
+    "adb"
   ],
   "jest": {
     "scriptPreprocessor": "<rootDir>/jest/preprocessor.js"
