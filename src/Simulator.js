@@ -1,6 +1,7 @@
 import 'instapromise';
 
 import existsAsync from 'exists-async';
+import delayAsync from 'delay-async';
 import download from 'download';
 import execAsync from 'exec-async';
 import fs from 'fs';
@@ -80,7 +81,6 @@ async function isExponentAppInstalledOnCurrentBootedSimulatorAsync() {
   return (matches.length > 0);
 }
 
-
 async function pathToExponentSimulatorAppAsync() {
   let versionInfo = await Metadata.reactNativeVersionInfoAsync();
   let versionPair = [versionInfo.versionDescription, versionInfo.versionSpecific];
@@ -94,6 +94,34 @@ async function installExponentOnSimulatorAsync() {
 
 async function openUrlInSimulatorAsync(url) {
   return await spawnAsync('xcrun', ['simctl', 'openurl', 'booted', url]);
+}
+
+async function openUrlInSimulatorSafeAsync(url, log, error, startLoading, stopLoading) {
+  if (!(await isSimulatorInstalledAsync())) {
+    error("Simulator not installed. Please visit https://developer.apple.com/xcode/download/ to download Xcode and the iOS simulator");
+    return;
+  }
+
+  if (!(await isSimulatorRunningAsync())) {
+    log("Opening iOS simulator");
+    if (startLoading) { startLoading(); }
+    await openSimulatorAsync();
+    // TODO: figure out a better way to do this
+    await delayAsync(5000);
+    if (stopLoading) { stopLoading(); }
+  }
+
+  if (!(await isExponentAppInstalledOnCurrentBootedSimulatorAsync())) {
+    log("Installing Exponent on iOS simulator");
+    if (startLoading) { startLoading(); }
+    await installExponentOnSimulatorAsync();
+    // TODO: figure out a better way to do this
+    await delayAsync(1000);
+    if (stopLoading) { stopLoading(); }
+  }
+
+  log(`Opening ${url} in iOS simulator`);
+  await openUrlInSimulatorAsync(url);
 }
 
 async function simulatorAppForReactNativeVersionAsync(versionPair) {
@@ -116,7 +144,6 @@ async function simulatorAppForReactNativeVersionAsync(versionPair) {
     await d$;
     return p;
   }
-
 }
 
 async function uninstallExponentAppFromSimulatorAsync() {
@@ -182,6 +209,7 @@ module.exports = {
   isSimulatorRunningAsync,
   openSimulatorAsync,
   openUrlInSimulatorAsync,
+  openUrlInSimulatorSafeAsync,
   pathToExponentSimulatorAppAsync,
   quitSimulatorAsync,
   simulatorCacheDirectory,
