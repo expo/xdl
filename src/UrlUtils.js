@@ -9,11 +9,11 @@ import url from 'url';
 import ProjectSettings from './ProjectSettings';
 
 export async function constructBundleUrlAsync(projectRoot, opts) {
-  return constructUrlAsync(projectRoot, opts, 'bundle');
+  return constructUrlAsync(projectRoot, opts, true);
 }
 
 export async function constructManifestUrlAsync(projectRoot, opts) {
-  return constructUrlAsync(projectRoot, opts, null);
+  return constructUrlAsync(projectRoot, opts, false);
 }
 
 export async function constructPublishUrlAsync(projectRoot) {
@@ -47,7 +47,7 @@ export function constructBundleQueryParams(opts) {
   return queryParams;
 }
 
-export async function constructUrlAsync(projectRoot, opts, path) {
+async function constructUrlAsync(projectRoot, opts, isPackager) {
   let defaultOpts = await ProjectSettings.getPackagerOptsAsync(projectRoot);
   if (!opts) {
     opts = defaultOpts;
@@ -67,15 +67,15 @@ export async function constructUrlAsync(projectRoot, opts, path) {
 
   if (opts.localhost) {
     hostname = 'localhost';
-    port = packagerInfo.port;
+    port = isPackager ? packagerInfo.packagerPort : packagerInfo.port;
   } else if (opts.lan) {
     hostname = os.hostname();
-    port = packagerInfo.port;
+    port = isPackager ? packagerInfo.packagerPort : packagerInfo.port;
   } else if (opts.lanIp) {
     hostname = myLocalIp;
-    port = packagerInfo.port;
+    port = isPackager ? packagerInfo.packagerPort : packagerInfo.port;
   } else {
-    let ngrokUrl = packagerInfo.ngrok;
+    let ngrokUrl = isPackager ? packagerInfo.packagerNgrok : packagerInfo.ngrok;
     if (!ngrokUrl) {
       throw new Error("Can't get ngrok URL because ngrok not started yet");
     }
@@ -88,10 +88,6 @@ export async function constructUrlAsync(projectRoot, opts, path) {
   let url_ = protocol + '://' + hostname;
   if (port) {
     url_ += ':' + port;
-  }
-
-  if (path) {
-    url_ += '/' + path;
   }
 
   if (opts.redirect) {

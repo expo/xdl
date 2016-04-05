@@ -8,7 +8,6 @@ import freeportAsync from 'freeport-async';
 import instapromise from 'instapromise';
 import ngrok from 'ngrok';
 import path from 'path';
-import proxy from 'express-http-proxy';
 import events from 'events';
 
 import Api from './Api';
@@ -49,7 +48,7 @@ class PackagerController extends events.EventEmitter {
       if (pc._packager) {
         pc._packager.kill('SIGTERM');
       }
-      if (pc._ngrokUrl) {
+      if (pc._ngrokUrl || pc._packagerNgrokUrl) {
         ngrok.kill();
       }
     }
@@ -61,49 +60,9 @@ class PackagerController extends events.EventEmitter {
     let app = express();
     let self = this;
 
-    // Proxy '/bundle' to the packager.
-    app.use('/bundle', proxy('localhost:' + this.opts.packagerPort, {
-      forwardPath: (req, res) => {
-        let queryString = require('url').parse(req.url).query;
-        let platform = req.headers['exponent-platform'] || 'ios';
-        let path = '/' + UrlUtils.guessMainModulePath(self.opts.entryPoint);
-        path += '.bundle';
-        path += '?';
-        if (queryString) {
-         path += queryString + '&';
-        }
-        path += 'platform=' + platform;
-        return path;
-      },
-    }));
-
-    app.use('/map', proxy('localhost:' + this.opts.packagerPort, {
-      forwardPath: (req, res) => {
-        let queryString = require('url').parse(req.url).query;
-        let platform = req.headers['exponent-platform'] || 'ios';
-        let path = '/' + UrlUtils.guessMainModulePath(self.opts.entryPoint);
-        path += '.map';
-        path += '?';
-        if (queryString) {
-         path += queryString + '&';
-        }
-        path += 'platform=' + platform;
-        return path;
-      },
-    }));
-
-    // Proxy sourcemaps to the packager.
-    app.use('/', proxy('localhost:' + this.opts.packagerPort, {
-      filter: function(req, res) {
-        let path = require('url').parse(req.url).pathname;
-        return path !== '/' && path !== '/manifest' && path !== '/bundle' && path !== '/index.exp';
-      },
-    }));
-
     // Serve the manifest.
     let manifestHandler = async (req, res) => {
       try {
-
         // N.B. We intentionally don't `await` this. We want to continue trying even
         //  if there is a potential error in the package.json and don't want to slow
         //  down the request
@@ -113,14 +72,16 @@ class PackagerController extends events.EventEmitter {
         let manifest = pkg.exp || {};
         let packagerOpts = await ProjectSettings.getPackagerOptsAsync(self.opts.absolutePath);
         let queryParams = UrlUtils.constructBundleQueryParams(packagerOpts);
-        // TODO: remove bundlePath
-        manifest.bundlePath = 'bundle?' + queryParams;
         packagerOpts.http = true;
         packagerOpts.redirect = false;
         manifest.xde = true;
-        manifest.bundleUrl = await UrlUtils.constructBundleUrlAsync(self.getRoot(), packagerOpts) + '?' + queryParams;
+
+        let mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
+        let platform = req.headers['exponent-platform'] || 'ios';
+        let path = `/${mainModuleName}.bundle?platform=${platform}&${queryParams}`;
+        manifest.bundleUrl = await UrlUtils.constructBundleUrlAsync(self.getRoot(), packagerOpts) + path;
         manifest.debuggerHost = await UrlUtils.constructDebuggerHostAsync(self.getRoot());
-        manifest.mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
+        manifest.mainModuleName = mainModuleName;
 
         let manifestString = JSON.stringify(manifest);
         let currentUser = await Login.currentUserAsync();
@@ -176,13 +137,14 @@ class PackagerController extends events.EventEmitter {
   }
 
   async startOrRestartNgrokAsync() {
-    if (this._ngrokUrl) {
+    if (this._ngrokUrl || this._packagerNgrokUrl) {
       console.log("Waiting for ngrok to disconnect...");
       await this._stopNgrokAsync();
       console.log("Disconnected ngrok; restarting...");
     }
 
     this.emit('ngrok-will-start', this.opts.port);
+    this.emit('packager-ngrok-will-start', this.opts.packagerPort);
 
     // Don't try to parallelize these because they both might
     // mess with the same settings.json file, which could get gnarly
@@ -194,6 +156,7 @@ class PackagerController extends events.EventEmitter {
     let randomness = await this.getRandomnessAsync();
 
     let hostname = [randomness, UrlUtils.domainify(username), UrlUtils.domainify(packageShortName), Config.ngrok.domain].join('.');
+    let packagerHostname = 'packager.' + hostname;
 
     try {
       this._ngrokUrl = await ngrok.promise.connect({
@@ -202,15 +165,24 @@ class PackagerController extends events.EventEmitter {
         port: this.opts.port,
         proto: 'http',
       });
+
+      this._packagerNgrokUrl = await ngrok.promise.connect({
+        hostname: packagerHostname,
+        authtoken: Config.ngrok.authToken,
+        port: this.opts.packagerPort,
+        proto: 'http',
+      });
     } catch (e) {
       console.error("Problem with ngrok: " + JSON.stringify(e));
     }
 
     this.emit('ngrok-did-start', this.opts.port, this._ngrokUrl);
+    this.emit('packager-ngrok-did-start', this.opts.packagerPort, this._packagerNgrokUrl);
     this.emit('ngrok-ready', this.opts.port, this._ngrokUrl);
+    this.emit('packager-ngrok-ready', this.opts.packagerPort, this._packagerNgrokUrl);
 
     console.log("Connected ngrok to port " + this.opts.port + " via " + this._ngrokUrl);
-    return this._ngrokUrl;
+    console.log("Connected packager ngrok to port " + this.opts.packagerPort + " via " + this._packagerNgrokUrl);
   }
 
   async getLoggedOutPlaceholderUsernameAsync() {
@@ -338,6 +310,22 @@ class PackagerController extends events.EventEmitter {
         this.emit('ngrok-disconnect-err', e);
       }
     }
+
+    if (this._packagerNgrokUrl) {
+      this.emit('packager-ngrok-will-disconnect', this._packagerNgrokUrl);
+      try {
+        await ngrok.promise.disconnect(this._packagerNgrokUrl);
+        let oldNgrokUrl = this._packagerNgrokUrl;
+        this._packagerNgrokUrl = null;
+        // this._ngrokDisconnectedFulfill(oldNgrokUrl);
+        // console.log("Disconnected ngrok");
+        this.emit('packager-ngrok-disconnected', oldNgrokUrl);
+      } catch (e) {
+        console.error("Problem disconnecting packager ngrok:", e);
+        // this._ngrokDisconnectedReject(e);
+        this.emit('packager-ngrok-disconnect-err', e);
+      }
+    }
   }
 
   async startAsync() {
@@ -365,6 +353,7 @@ class PackagerController extends events.EventEmitter {
       packagerPort: this.opts.packagerPort,
       port: this.opts.port,
       ngrok: this.getNgrokUrl(),
+      packagerNgrok: this._packagerNgrokUrl,
     });
 
     return this;
