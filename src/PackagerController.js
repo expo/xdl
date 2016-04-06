@@ -240,8 +240,8 @@ class PackagerController extends events.EventEmitter {
     // ELECTRON_RUN_AS_NODE environment variable
     // Note: the CLI script sets up graceful-fs and sets ulimit to 4096 in the
     // child process
-    let packagerProcess = child_process.fork(this.opts.cliPath, cliOpts, {
-      cwd: path.dirname(path.dirname(this.opts.cliPath)),
+    let packagerProcess = child_process.fork(cliPath, cliOpts, {
+      cwd: root,
       env: {
         ...process.env,
         NODE_PATH: null,
