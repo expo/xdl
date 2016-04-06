@@ -206,15 +206,35 @@ class PackagerController extends events.EventEmitter {
 
     await this._stopPackagerAsync();
 
-    let cliOpts = ['start',
-      '--port', this.opts.packagerPort,
-      '--projectRoots', root,
-      '--assetRoots', root,
-    ];
+    const packageJSON = await Exp.packageJsonForRoot(this.opts.absolutePath).readAsync()
+
+    let packagerOpts = {
+      port: this.opts.packagerPort,
+      projectRoots: root,
+      assetRoots: root,
+    };
+
+    const userPackagerOpts = _.get(packageJSON, 'exp.packagerOpts', null);
+    if (userPackagerOpts) {
+      packagerOpts = {
+        ...packagerOpts,
+        ...userPackagerOpts,
+      };
+    }
+
+    let cliOpts = _.reduce(packagerOpts, (opts, val, key) => {
+      if (val && val !== '') {
+        opts.push(`--${key}`, val);
+      }
+      return opts;
+    }, ['start']);
 
     if (options.reset) {
       cliOpts.push('--reset-cache');
     }
+
+    // Get custom CLI path from project package.json, but fall back to node_module path
+    const cliPath = _.get(packageJSON, 'exp.rnCliPath', this.opts.cliPath);
 
     // Run the copy of Node that's embedded in Electron by setting the
     // ELECTRON_RUN_AS_NODE environment variable
