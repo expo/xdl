@@ -40,7 +40,7 @@ export function constructBundleQueryParams(opts) {
     queryParams += '&strict=' + encodeURIComponent(!!opts.strict);
   }
 
-  if (opts.minify) {
+  if (opts.hasOwnProperty('minify')) {
     queryParams += '&minify=' + encodeURIComponent(!!opts.minify);
   }
 
