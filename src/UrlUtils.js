@@ -29,8 +29,9 @@ export async function constructPublishUrlAsync(projectRoot) {
 }
 
 export async function constructDebuggerHostAsync(projectRoot) {
-  let packagerInfo = await ProjectSettings.readPackagerInfoAsync(projectRoot);
-  return ip.address() + ':' + packagerInfo.packagerPort;
+  return constructUrlAsync(projectRoot, {
+    noProtocol: true,
+  }, true);
 }
 
 export function constructBundleQueryParams(opts) {
@@ -62,6 +63,8 @@ async function constructUrlAsync(projectRoot, opts, isPackager) {
   let protocol = 'exp';
   if (opts.http) {
     protocol = 'http';
+  } else if (opts.noProtocol) {
+    protocol = null;
   }
 
   let hostname;
@@ -87,7 +90,13 @@ async function constructUrlAsync(projectRoot, opts, isPackager) {
     port = pnu.port;
   }
 
-  let url_ = protocol + '://' + hostname;
+  let url_ = '';
+  if (protocol) {
+    url_ += protocol + '://'
+  }
+
+  url_ += hostname;
+
   if (port) {
     url_ += ':' + port;
   }

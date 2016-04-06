@@ -12,4 +12,5 @@ module.exports = {
     authTokenPublicId: '5W1bR67GNbWcXqmxZzBG1',
     domain: 'exp.direct',
   },
+  developerTool: null,
 };

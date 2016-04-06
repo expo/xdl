@@ -74,7 +74,10 @@ class PackagerController extends events.EventEmitter {
         let queryParams = UrlUtils.constructBundleQueryParams(packagerOpts);
         packagerOpts.http = true;
         packagerOpts.redirect = false;
-        manifest.xde = true;
+        manifest.xde = true; // deprecated
+        manifest.developer = {
+          tool: Config.developerTool,
+        };
 
         let mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
         let platform = req.headers['exponent-platform'] || 'ios';
