@@ -44,6 +44,8 @@ export function constructBundleQueryParams(opts) {
     queryParams += '&minify=' + encodeURIComponent(!!opts.minify);
   }
 
+  queryParams += '&hot=false';
+
   return queryParams;
 }
 
