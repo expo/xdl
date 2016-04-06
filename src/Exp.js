@@ -27,8 +27,16 @@ function packageJsonForRoot(root) {
 
 async function determineEntryPointAsync(root) {
   let pkgJson = packageJsonForRoot(root);
-  let main = await pkgJson.getAsync('main', 'index.js');
-  return main;
+  let pkg = await pkgJson.readAsync();
+  let {
+    main,
+    exp,
+  } = pkg;
+  if (!main) {
+    main = 'index.js'
+  }
+  let entryPoint = exp.entryPoint || main;
+  return entryPoint;
 }
 
 async function createNewExpAsync(root, info, opts = {}) {
