@@ -70,19 +70,24 @@ class PackagerController extends events.EventEmitter {
 
         let pkg = await Exp.packageJsonForRoot(self.opts.absolutePath).readAsync();
         let manifest = pkg.exp || {};
+
+        // Get packager opts and then copy into bundleUrlPackagerOpts
         let packagerOpts = await ProjectSettings.getPackagerOptsAsync(self.opts.absolutePath);
-        let queryParams = UrlUtils.constructBundleQueryParams(packagerOpts);
-        packagerOpts.http = true;
-        packagerOpts.redirect = false;
+        let bundleUrlPackagerOpts = JSON.parse(JSON.stringify(packagerOpts));
+        bundleUrlPackagerOpts.http = true;
+        bundleUrlPackagerOpts.redirect = false;
+
         manifest.xde = true; // deprecated
         manifest.developer = {
           tool: Config.developerTool,
         };
+        manifest.packagerOpts = packagerOpts;
 
         let mainModuleName = UrlUtils.guessMainModulePath(self.opts.entryPoint);
         let platform = req.headers['exponent-platform'] || 'ios';
+        let queryParams = UrlUtils.constructBundleQueryParams(packagerOpts);
         let path = `/${mainModuleName}.bundle?platform=${platform}&${queryParams}`;
-        manifest.bundleUrl = await UrlUtils.constructBundleUrlAsync(self.getRoot(), packagerOpts) + path;
+        manifest.bundleUrl = await UrlUtils.constructBundleUrlAsync(self.getRoot(), bundleUrlPackagerOpts) + path;
         manifest.debuggerHost = await UrlUtils.constructDebuggerHostAsync(self.getRoot());
         manifest.mainModuleName = mainModuleName;
 
