@@ -99,6 +99,8 @@ async function constructUrlAsync(projectRoot, opts, isPackager) {
 
   if (port) {
     url_ += ':' + port;
+  } else {
+    url_ += ':80'; // DUMB BUG FIX!!!! Old RN needs a port number
   }
 
   if (opts.redirect) {
