@@ -16,6 +16,7 @@ import Exp from './Exp';
 import Login from './Login';
 import ProjectSettings from './ProjectSettings';
 import * as UrlUtils from './UrlUtils';
+import UserSettings from './UserSettings';
 
 class PackagerController extends events.EventEmitter {
   constructor(opts) {
