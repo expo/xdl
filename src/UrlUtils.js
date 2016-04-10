@@ -16,11 +16,14 @@ export async function constructManifestUrlAsync(projectRoot, opts) {
   return constructUrlAsync(projectRoot, opts, false);
 }
 
-export async function constructPublishUrlAsync(projectRoot) {
+export async function constructPublishUrlAsync(projectRoot, entryPoint) {
   let bundleUrl = await constructBundleUrlAsync(projectRoot, {
     ngrok: true,
     http: true,
   });
+
+  let mainModulePath = guessMainModulePath(entryPoint);
+  bundleUrl += `/${mainModulePath}.bundle`;
 
   return bundleUrl + '?' + constructBundleQueryParams({
     dev: false,

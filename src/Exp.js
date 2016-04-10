@@ -154,7 +154,8 @@ async function getPublishInfoAsync(root) {
   let packageVersion = version;
   let sdkVersion = exp.sdkVersion;
 
-  let ngrokUrl = await UrlUtils.constructPublishUrlAsync(root);
+  let entryPoint = await determineEntryPointAsync(root);
+  let ngrokUrl = await UrlUtils.constructPublishUrlAsync(root, entryPoint);
   return {
     args: {
       username,
