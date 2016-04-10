@@ -32,10 +32,10 @@ async function determineEntryPointAsync(root) {
     main,
     exp,
   } = pkg;
-  if (!main) {
-    main = 'index.js'
+  let entryPoint = main || 'index.js';
+  if (exp && exp.entryPoint) {
+    entryPoint = exp.entryPoint;
   }
-  let entryPoint = exp.entryPoint || main;
   return entryPoint;
 }
 
