@@ -362,12 +362,15 @@ class PackagerController extends events.EventEmitter {
   async _waitForRunningAsync(url) {
     try {
       let response = await request.promise(url);
-      if (response.statusCode >= 200 || response.statusCode < 300) {
+      // Looking for "Cached Bundles" string is hacky, but unfortunately
+      // ngrok returns a 200 when it succeeds but the port it's proxying
+      // isn't bound.
+      if (response.statusCode >= 200 && response.statusCode < 300 &&
+          response.body && response.body.includes('Cached Bundles')) {
         return true;
       }
     } catch (e) {
       // Try again after delay
-      console.log(e);
     }
 
     await delayAsync(500);
@@ -440,7 +443,7 @@ class PackagerController extends events.EventEmitter {
       // Until we have that setup properly, we'll transform these URLs into http URLs
       return this._packagerNgrokUrl.replace(/^https/, 'http');
     } else {
-      return this.getPackagerNgrokUrl;
+      return this._packagerNgrokUrl;
     }
   }
 
