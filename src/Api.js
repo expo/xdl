@@ -54,7 +54,7 @@ async function _callMethodAsync(url, method, requestBody) {
     try {
       responseObj = JSON.parse(responseBody);
     } catch (e) {
-      throw new Error("Invalid JSON returned from API: " + e);
+      throw new Error("Invalid JSON returned from API: " + e + ". Response body: " + responseBody);
     }
   } else {
     responseObj = responseBody;

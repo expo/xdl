@@ -3,12 +3,14 @@
 import _ from 'lodash';
 import child_process from 'child_process';
 import crayon from '@ccheever/crayon';
+import delayAsync from 'delay-async';
+import events from 'events';
 import express from 'express';
 import freeportAsync from 'freeport-async';
 import instapromise from 'instapromise';
 import ngrok from 'ngrok';
 import path from 'path';
-import events from 'events';
+import request from 'request';
 
 import Api from './Api';
 import Config from './Config';
@@ -357,6 +359,21 @@ class PackagerController extends events.EventEmitter {
     }
   }
 
+  async _waitForRunningAsync(url) {
+    try {
+      let response = await request.promise(url);
+      if (response.statusCode >= 200 || response.statusCode < 300) {
+        return true;
+      }
+    } catch (e) {
+      // Try again after delay
+      console.log(e);
+    }
+
+    await delayAsync(500);
+    return this._waitForRunningAsync(url);
+  }
+
   async startAsync() {
     this.validatePackageJsonAsync();
 
@@ -377,6 +394,9 @@ class PackagerController extends events.EventEmitter {
       this.startOrRestartPackagerAsync(),
       this.startOrRestartNgrokAsync(),
     ]);
+
+    // Wait until we can hit the packager's debug page over ngrok.
+    await this._waitForRunningAsync(this.getPackagerNgrokUrl() + '/debug');
 
     await ProjectSettings.setPackagerInfoAsync(this.opts.absolutePath, {
       packagerPort: this.opts.packagerPort,
@@ -409,6 +429,18 @@ class PackagerController extends events.EventEmitter {
       return this._ngrokUrl.replace(/^https/, 'http');
     } else {
       return this._ngrokUrl;
+    }
+  }
+
+  getPackagerNgrokUrl() {
+    if (this._packagerNgrokUrl) {
+      // ngrok reports https URLs, but to use https/TLS, we actually need to do a bunch of steps
+      // to set up the certificates. Those are (somewhat) documented here:
+      // https://ngrok.com/docs#tls-cert-warnings
+      // Until we have that setup properly, we'll transform these URLs into http URLs
+      return this._packagerNgrokUrl.replace(/^https/, 'http');
+    } else {
+      return this.getPackagerNgrokUrl;
     }
   }
 
