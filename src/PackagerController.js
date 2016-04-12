@@ -197,7 +197,7 @@ class PackagerController extends events.EventEmitter {
   async getLoggedOutPlaceholderUsernameAsync() {
     let lpu = await UserSettings.getAsync('loggedOutPlaceholderUsername', null);
     if (!lpu) {
-      let lpu = UrlUtils.randomIdentifierForLoggedOutUser();
+      lpu = UrlUtils.randomIdentifierForLoggedOutUser();
       await UserSettings.setAsync('loggedOutPlaceholderUsername', lpu);
     }
     return lpu;
