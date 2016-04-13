@@ -147,6 +147,23 @@ class PackagerController extends events.EventEmitter {
     return randomness;
   }
 
+  async _connectToNgrokAsync(args, attempts) {
+    try {
+      return await ngrok.promise.connect(args);
+    } catch (e) {
+      if (attempts >= 2) {
+        throw e;
+      }
+
+      // Attempt to connect 3 times
+      if (!attempts) {
+        attempts = 0;
+      }
+
+      return this._connectToNgrokAsync(args, attempts + 1);
+    }
+  }
+
   async startOrRestartNgrokAsync() {
     if (this._ngrokUrl || this._packagerNgrokUrl) {
       console.log("Waiting for ngrok to disconnect...");
@@ -170,14 +187,14 @@ class PackagerController extends events.EventEmitter {
     let packagerHostname = 'packager.' + hostname;
 
     try {
-      this._ngrokUrl = await ngrok.promise.connect({
+      this._ngrokUrl = await this._connectToNgrokAsync({
         hostname,
         authtoken: Config.ngrok.authToken,
         port: this.opts.port,
         proto: 'http',
       });
 
-      this._packagerNgrokUrl = await ngrok.promise.connect({
+      this._packagerNgrokUrl = await this._connectToNgrokAsync({
         hostname: packagerHostname,
         authtoken: Config.ngrok.authToken,
         port: this.opts.packagerPort,
@@ -185,6 +202,7 @@ class PackagerController extends events.EventEmitter {
       });
     } catch (e) {
       console.error("Problem with ngrok: " + JSON.stringify(e));
+      throw e;
     }
 
     this.emit('ngrok-did-start', this.opts.port, this._ngrokUrl);
