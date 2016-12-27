@@ -25,6 +25,8 @@ export default async function convertProjectAsync(projectDir:string, {projectNam
 
   let packageJsonSourcePath = path.join(projectDir, '/package.json');
   let packageJsonTargetPath = path.join(projectDir, '/package.json');
+  
+  let gitIgnoreSourcePath = path.join(projectDir, '/.gitignore');
 
   // Add values to exp.json,) save to given path
   let expJson = {...expJsonTemplate};
@@ -55,6 +57,15 @@ export default async function convertProjectAsync(projectDir:string, {projectNam
 
   // TODO: Add import Exponent from 'exponent'; at the top of main file
   // TODO: Add .exponent/* to gitignore
+    fse.appendFile(gitIgnoreSourcePath, '\n .exponent', function (err) {
+    if (err) {
+      // append failed
+      console.log('Did not write out .exponent to gitignore.'
+    } else {
+      // done
+      console.log('.exponent added to .gitignore'
+    }
+  })
 
   // Copy babelrc
   jsonfile.writeFileSync(babelRcTargetPath, babelRcTemplate, {spaces: 2});
