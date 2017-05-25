@@ -135,9 +135,10 @@ async function installAndInstructAsync(projectDir, unsupportedPackagesUsed) {
 1. If you have separate index.ios.js and index.android.js files, you'll need to create a main.js file that contains \`require('./index');\`. Also set \`"main": "main.js"\` in package.json.
 2. Find your AppRegistry.registerComponent('YourApplicationName', () => YourRootComponent) call and replace it with Expo.registerRootComponent(YourRootComponent) (you will need to import Expo from 'expo').
 3. Upload your app icon somewhere on the web and add it the newly created exp.json file, in the iconUrl and loading.iconUrl fields.
-4. Delete your 'android' and 'ios' directories if you have them -- you no longer need to compile any native code to run your app.
-5. ${showCompatibilityMessage(unsupportedPackagesUsed)}
-6. Open your app in XDE and run it, fix bugs as they arise.
+4. Merge the contents of app.json and exp.json into one single file, which will just be exp.json. Delete app.json after this point.
+5. Delete your 'android' and 'ios' directories if you have them -- you no longer need to compile any native code to run your app.
+6. ${showCompatibilityMessage(unsupportedPackagesUsed)}
+7. Open your app in XDE and run it, fix bugs as they arise.
 `;
   console.log(nextStepMessage);
   fse.outputFileSync(nextStepMessagePath, nextStepMessage);
