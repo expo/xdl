@@ -155,6 +155,12 @@ export async function detachAsync(projectRoot: string) {
     }
   }
 
+  if (process.platform !== 'darwin') {
+    console.warn(
+      `It appears you are trying to detach outside of macOS. You will require Xcode to build the resulting artefact.`
+    );
+  }
+
   // Modify exp.json
   exp.isDetached = true;
 
