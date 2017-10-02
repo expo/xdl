@@ -43,7 +43,7 @@ async function _checkNpmVersionAsync(projectRoot) {
     await Binaries.sourceBashLoginScriptsAsync();
 
     try {
-      let yarnVersionResponse = await spawnAsync('yarn', ['--version']);
+      let yarnVersionResponse = await spawnAsync('yarnpkg', ['--version']);
       let yarnVersion = _.trim(yarnVersionResponse.stdout);
 
       if (yarnVersion) {
