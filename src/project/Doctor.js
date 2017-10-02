@@ -44,10 +44,8 @@ async function _checkNpmVersionAsync(projectRoot) {
 
     try {
       let yarnVersionResponse = await spawnAsync('yarnpkg', ['--version']);
-      let yarnVersion = _.trim(yarnVersionResponse.stdout);
-
-      if (yarnVersion) {
-        return NO_ISSUES;
+      if (yarnVersionResponse.status === 0) {
+        return NO_ISSUES
       }
     } catch (e) {}
 
