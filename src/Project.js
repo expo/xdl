@@ -1303,7 +1303,7 @@ export async function startExpoServerAsync(projectRoot: string) {
       } // Get packager opts and then copy into bundleUrlPackagerOpts
       let packagerOpts = await ProjectSettings.getPackagerOptsAsync(projectRoot);
       let bundleUrlPackagerOpts = JSON.parse(JSON.stringify(packagerOpts));
-      bundleUrlPackagerOpts.urlType = 'http';
+
       if (bundleUrlPackagerOpts.hostType === 'redirect') {
         bundleUrlPackagerOpts.hostType = 'tunnel';
       }
@@ -1330,15 +1330,15 @@ export async function startExpoServerAsync(projectRoot: string) {
       );
       let path = `/${mainModuleName}.bundle?platform=${platform}&${queryParams}`;
       manifest.bundleUrl =
-        (await UrlUtils.constructBundleUrlAsync(projectRoot, bundleUrlPackagerOpts, req.hostname)) +
+        (await UrlUtils.constructBundleUrlAsync(projectRoot, bundleUrlPackagerOpts, true, req.hostname)) +
         path;
       manifest.debuggerHost = await UrlUtils.constructDebuggerHostAsync(projectRoot, req.hostname);
       manifest.mainModuleName = mainModuleName;
-      manifest.logUrl = `${await UrlUtils.constructManifestUrlAsync(
+      manifest.logUrl = await UrlUtils.constructLogUrlAsync(
         projectRoot,
-        { urlType: 'http' },
+        bundleUrlPackagerOpts,
         req.hostname
-      )}/logs`; // Resolve manifest assets to their packager URL
+      );
       await _resolveManifestAssets(
         projectRoot,
         manifest,
