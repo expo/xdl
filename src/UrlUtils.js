@@ -22,9 +22,10 @@ const joiValidateAsync = promisify(joi.validate);
 export async function constructBundleUrlAsync(
   projectRoot: string,
   opts: any,
+  webProtocol?: boolean,
   requestHostname?: string
 ) {
-  return constructUrlAsync(projectRoot, opts, true, requestHostname);
+  return constructUrlAsync(projectRoot, opts, true, webProtocol, requestHostname);
 }
 
 export async function constructManifestUrlAsync(
@@ -32,7 +33,16 @@ export async function constructManifestUrlAsync(
   opts: any,
   requestHostname?: string
 ) {
-  return constructUrlAsync(projectRoot, opts, false, requestHostname);
+  return constructUrlAsync(projectRoot, opts, false, false, requestHostname);
+}
+
+export async function constructLogUrlAsync(
+  projectRoot: string,
+  opts: any,
+  requestHostname?: string
+) {
+  let baseUrl = await constructUrlAsync(projectRoot, opts, false, true, requestHostname);
+  return `${baseUrl}/logs`;
 }
 
 export async function constructUrlWithExtensionAsync(
@@ -47,6 +57,7 @@ export async function constructUrlWithExtensionAsync(
       hostType: 'localhost',
       urlType: 'http',
     },
+    true,
     requestHostname
   );
 
@@ -88,7 +99,11 @@ export async function constructAssetsUrlAsync(
   return await constructUrlWithExtensionAsync(projectRoot, entryPoint, 'assets', requestHostname);
 }
 
-export async function constructDebuggerHostAsync(projectRoot: string, requestHostname?: string) {
+export async function constructDebuggerHostAsync(
+  projectRoot: string,
+  opts: any,
+  requestHostname?: string
+) {
   return constructUrlAsync(
     projectRoot,
     {
@@ -138,6 +153,7 @@ export async function constructUrlAsync(
   projectRoot: string,
   opts: any,
   isPackager: boolean,
+  webProtocol: boolen,
   requestHostname?: string
 ) {
   if (opts) {
@@ -151,11 +167,10 @@ export async function constructUrlAsync(
     } else {
       urlRandomnessSchema = joi.string();
     }
-
     let schema = joi.object().keys({
-      urlType: joi.any().valid('exp', 'http', 'redirect', 'no-protocol'),
+      urlType: joi.any().valid('exp', 'http', 'https', 'redirect', 'no-protocol'),
       lanType: joi.any().valid('ip', 'hostname'),
-      hostType: joi.any().valid('localhost', 'lan', 'tunnel'),
+      hostType: joi.any().valid('localhost', 'lan', 'tunnel', 'proxied'),
       dev: joi.boolean(),
       strict: joi.boolean(),
       minify: joi.boolean(),
@@ -179,7 +194,9 @@ export async function constructUrlAsync(
   let packagerInfo = await ProjectSettings.readPackagerInfoAsync(projectRoot);
 
   let protocol;
-  if (opts.urlType === 'http') {
+  if (opts.urlType === 'https' && webProtocol) {
+    protocol = 'https';
+  } else if (opts.urlType === 'http' && webProtocol) {
     protocol = 'http';
   } else if (opts.urlType === 'no-protocol') {
     protocol = null;
@@ -195,7 +212,14 @@ export async function constructUrlAsync(
   let hostname;
   let port;
 
-  if (opts.hostType === 'localhost' || requestHostname === 'localhost') {
+  if (opts.hostType === 'proxied') {
+    if (isPackager) {
+      hostname = process.env.EXPO_PACKAGER_URL || `localhost:${packagerInfo.packagerPort}`;
+    } else {
+      hostname = process.env.EXPO_SERVER_URL || `localhost:${packagerInfo.expoServerPort}`;
+    }
+    port = null;
+  } else if (opts.hostType === 'localhost' || requestHostname === 'localhost') {
     hostname = 'localhost';
     port = isPackager ? packagerInfo.packagerPort : packagerInfo.expoServerPort;
   } else if (opts.hostType === 'lan' || Config.offline) {
@@ -242,7 +266,7 @@ export async function constructUrlAsync(
 
   if (port) {
     url_ += `:${port}`;
-  } else {
+  } else if (opts.hostType !== 'proxied'){
     // Android HMR breaks without this :|
     url_ += ':80';
   }
