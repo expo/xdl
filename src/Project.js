@@ -1417,6 +1417,7 @@ export async function startExpoServerAsync(projectRoot: string) {
       res.send(manifestString);
       Analytics.logEvent('Serve Manifest', {
         projectRoot,
+        developerTool: Config.developerTool,
       });
     } catch (e) {
       ProjectUtils.logDebug(projectRoot, 'expo', `Error in manifestHandler: ${e} ${e.stack}`); // 5xx = Server Error HTTP code
