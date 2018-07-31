@@ -13,6 +13,7 @@ describe('renderIntentFilters', () => {
         'category': 'DEFAULT',
       },
       {
+        'autoVerify': true,
         'data': [
           { 'scheme': 'http', 'host': 'exp.host', 'pathPrefix': '/@', 'mimeType': 'image/jpeg' },
           { 'scheme': 'https', 'port': '443', 'pathPattern': '.*' },
@@ -28,7 +29,7 @@ describe('renderIntentFilters', () => {
           <action android:name="android.intent.action.VIEW"/>
           <category android:name="android.intent.category.DEFAULT"/>
         </intent-filter>`,
-        `<intent-filter>
+        `<intent-filter android:autoVerify="true">
           <data android:scheme="http" android:host="exp.host" android:pathPrefix="/@" android:mimeType="image/jpeg"/>
           <data android:scheme="https" android:port="443" android:pathPattern=".*"/>
           <action android:name="android.intent.action.WEB_SEARCH"/>

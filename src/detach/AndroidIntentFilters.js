@@ -15,7 +15,9 @@ export default function renderIntentFilters(intentFilters) {
   //   ...
   // ]
   return intentFilters.map(intentFilter => {
-    return `<intent-filter>
+    const autoVerify = intentFilter.autoVerify ? ' android:autoVerify="true"' : '';
+
+    return `<intent-filter${autoVerify}>
       ${renderIntentFilterData(intentFilter.data)}
       <action android:name="android.intent.action.${intentFilter.action}"/>
       ${renderIntentFilterCategory(intentFilter.category)}
