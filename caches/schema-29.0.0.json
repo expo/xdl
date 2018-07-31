@@ -712,6 +712,21 @@
                 }
               }
             }
+          },
+          "intentFilters": {
+            "description": "An array of intent filters.",
+            "example": [{
+              "action": "VIEW",
+              "data": {
+                "scheme": "https",
+                "host": "*.expo.io"
+              },
+              "category": [
+                "BROWSABLE",
+                "DEFAULT"
+              ]
+            }],
+            "type": "array"
           }
         },
         "additionalProperties": false
