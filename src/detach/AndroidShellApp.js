@@ -719,10 +719,16 @@ export async function runShellAppModificationsAsync(
   }
 
   // Add app-specific intent filters
-  if (_.get(manifest, 'android.intentFilters')) {
-    var intentFilters = _.get(manifest, 'android.intentFilters');
+  var intentFilters = _.get(manifest, 'android.intentFilters');
+  if (isDetached) {
     await regexFileAsync(
-      '<!-- APP SPECIFIC INTENT FILTERS -->',
+      '<!-- ADD DETACH APP SPECIFIC INTENT FILTERS -->',
+      renderIntentFilters(intentFilters).join('\n'),
+      path.join(shellPath, 'app', 'src', 'main', 'AndroidManifest.xml')
+    );
+  } else {
+    await regexFileAsync(
+      '<!-- ADD SHELL APP SPECIFIC INTENT FILTERS -->',
       renderIntentFilters(intentFilters).join('\n'),
       path.join(shellPath, 'app', 'src', 'main', 'AndroidManifest.xml')
     );
