@@ -30,6 +30,7 @@ const defaultUniversalModuleConfig = {
 
 const expoSdkUniversalModules = [
   // versioned modules
+  
   { podName: 'EXGL', libName: 'expo-gl' },
   { podName: 'EXSMS', libName: 'expo-sms' },
   { podName: 'EXCore', libName: 'expo-core' },
@@ -38,12 +39,14 @@ const expoSdkUniversalModules = [
   { podName: 'EXCamera', libName: 'expo-camera' },
   { podName: 'EXSensors', libName: 'expo-sensors' },
   { podName: 'EXLocation', libName: 'expo-location' },
+  { podName: 'EXAdsAdMob', libName: 'expo-ads-admob' },
   { podName: 'EXConstants', libName: 'expo-constants' },
   { podName: 'EXFileSystem', libName: 'expo-file-system' },
   { podName: 'EXPermissions', libName: 'expo-permissions' },
   { podName: 'EXSegment', libName: 'expo-analytics-segment' },
   { podName: 'EXMediaLibrary', libName: 'expo-media-library' },
   { podName: 'EXFontInterface', libName: 'expo-font-interface' },
+  { podName: 'EXBarCodeScanner', libName: 'expo-barcode-scanner' },
   { podName: 'EXCameraInterface', libName: 'expo-camera-interface' },
   { podName: 'EXSensorsInterface', libName: 'expo-sensors-interface' },
   { podName: 'EXConstantsInterface', libName: 'expo-constants-interface' },
@@ -52,13 +55,12 @@ const expoSdkUniversalModules = [
   { podName: 'EXPermissionsInterface', libName: 'expo-permissions-interface' },
   { podName: 'EXImageLoaderInterface', libName: 'expo-image-loader-interface' },
   { podName: 'EXFaceDetectorInterface', libName: 'expo-face-detector-interface' },
+  { podName: 'EXBarCodeScannerInterface', libName: 'expo-barcode-scanner-interface' },
   {
     podName: 'EXFaceDetector',
     libName: 'expo-face-detector',
     detachable: false,
   },
-  { podName: 'EXBarCodeScannerInterface', libName: 'expo-barcode-scanner-interface' },
-  { podName: 'EXBarCodeScanner', libName: 'expo-barcode-scanner' },
 
   // unversioned modules
   {
