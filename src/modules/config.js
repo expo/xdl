@@ -30,7 +30,6 @@ const defaultUniversalModuleConfig = {
 
 const expoSdkUniversalModules = [
   // versioned modules
-
   { podName: 'EXGL', libName: 'expo-gl' },
   { podName: 'EXSMS', libName: 'expo-sms' },
   { podName: 'EXCore', libName: 'expo-core' },
@@ -57,6 +56,15 @@ const expoSdkUniversalModules = [
   { podName: 'EXImageLoaderInterface', libName: 'expo-image-loader-interface' },
   { podName: 'EXFaceDetectorInterface', libName: 'expo-face-detector-interface' },
   { podName: 'EXBarCodeScannerInterface', libName: 'expo-barcode-scanner-interface' },
+  {
+    podName: 'EXPaymentsStripe',
+    libName: 'expo-payments-stripe',
+    config: {
+      ios: {
+        includeInExpoClient: false,
+      },
+    },
+  },
   {
     podName: 'EXFaceDetector',
     libName: 'expo-face-detector',
