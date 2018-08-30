@@ -30,7 +30,7 @@ const defaultUniversalModuleConfig = {
 
 const expoSdkUniversalModules = [
   // versioned modules
-  
+
   { podName: 'EXGL', libName: 'expo-gl' },
   { podName: 'EXSMS', libName: 'expo-sms' },
   { podName: 'EXCore', libName: 'expo-core' },
@@ -39,6 +39,7 @@ const expoSdkUniversalModules = [
   { podName: 'EXCamera', libName: 'expo-camera' },
   { podName: 'EXSensors', libName: 'expo-sensors' },
   { podName: 'EXLocation', libName: 'expo-location' },
+  { podName: 'EXContacts', libName: 'expo-contacts' },
   { podName: 'EXAdsAdMob', libName: 'expo-ads-admob' },
   { podName: 'EXConstants', libName: 'expo-constants' },
   { podName: 'EXFileSystem', libName: 'expo-file-system' },
