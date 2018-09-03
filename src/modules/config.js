@@ -51,6 +51,7 @@ const expoSdkUniversalModules = [
   { podName: 'EXSensorsInterface', libName: 'expo-sensors-interface' },
   { podName: 'EXConstantsInterface', libName: 'expo-constants-interface' },
   { podName: 'EXReactNativeAdapter', libName: 'expo-react-native-adapter' },
+  { podName: 'EXLocalAuthentication', libName: 'expo-local-authentication' },
   { podName: 'EXFileSystemInterface', libName: 'expo-file-system-interface' },
   { podName: 'EXPermissionsInterface', libName: 'expo-permissions-interface' },
   { podName: 'EXImageLoaderInterface', libName: 'expo-image-loader-interface' },
