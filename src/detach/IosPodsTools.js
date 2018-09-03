@@ -305,7 +305,6 @@ function _renderUnversionedPostinstall() {
     'FBSDKCoreKit',
     'FBSDKLoginKit',
     'FBSDKShareKit',
-    'GPUImage',
     'JKBigInteger2',
   ];
   const podsToChangeRB = `[${podsToChangeDeployTarget.map(pod => `'${pod}'`).join(',')}]`;
