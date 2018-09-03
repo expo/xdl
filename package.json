@@ -29,6 +29,9 @@
     "url": "https://github.com/exponent/xdl/issues"
   },
   "homepage": "https://github.com/exponent/xdl#readme",
+  "peerDependencies": {
+    "react": "^16.0.0",
+  },
   "dependencies": {
     "@expo/bunyan": "3.0.2",
     "@expo/json-file": "^8.0.0",
@@ -76,7 +79,6 @@
     "querystring": "^0.2.0",
     "raven": "^2.1.1",
     "raven-js": "^3.17.0",
-    "react": "^16.0.0",
     "react-redux": "^5.0.2",
     "read-chunk": "^2.0.0",
     "read-last-lines": "^1.6.0",
