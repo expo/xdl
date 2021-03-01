@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.base",
-  "include": ["src/**/*"],
-  "compilerOptions": {
-    "outDir": "webpack",
-    "rootDir": "src"
-  },
-  "exclude": ["**/__mocks__/*", "**/__tests__/*"]
-}
