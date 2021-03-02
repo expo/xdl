@@ -4,7 +4,7 @@ module.exports = function (api) {
     // Only use this when running tests
     env: {
       test: {
-        presets: ['../packages/babel-preset-cli'],
+        presets: ['@expo/babel-preset-cli'],
       },
     },
   };
