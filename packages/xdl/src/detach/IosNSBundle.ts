@@ -416,6 +416,30 @@ async function _configureInfoPlistAsync(context: AnyStandaloneContext): Promise<
       };
     }
 
+    // SDKAdNetwork ids for expo-ads-facebook
+    if (config.dependencies?.includes?.('expo-ads-facebook')) {
+      infoPlist.SKAdNetworkItems = infoPlist.SKAdNetworkItems || [];
+
+      // These are static values from https://developers.facebook.com/docs/SKAdNetwork
+      infoPlist.SKAdNetworkItems.push({
+        SKAdNetworkIdentifier: 'v9wttpbfk9.skadnetwork',
+      });
+
+      infoPlist.SKAdNetworkItems.push({
+        SKAdNetworkIdentifier: 'n38lu8286q.skadnetwork',
+      });
+    }
+
+    // SDKAdNetwork ids for expo-ads-admob
+    if (config.dependencies?.includes?.('expo-ads-admob')) {
+      infoPlist.SKAdNetworkItems = infoPlist.SKAdNetworkItems || [];
+
+      // This is a static value from https://developers.google.com/admob/ios/ios14
+      infoPlist.SKAdNetworkItems.push({
+        SKAdNetworkIdentifier: 'cstr6suwn9.skadnetwork',
+      });
+    }
+
     const permissionsAppName = config.name ? config.name : 'this app';
     for (const key in infoPlist) {
       if (
