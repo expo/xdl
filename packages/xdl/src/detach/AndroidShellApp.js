@@ -1636,6 +1636,19 @@ const removeInvalidSdkLinesWhenPreparingShell = async (majorSdkVersion, filePath
 };
 
 async function removeObsoleteSdks(shellPath, requiredSdkVersion) {
+  let multipleVersionReactNativeActivity = path.join(
+    shellPath,
+    'expoview/src/versioned/java/host/exp/exponent/experience/MultipleVersionReactNativeActivity.java'
+  );
+
+  // fallback to non-versioned for backward compatibility
+  if (!fs.existsSync(multipleVersionReactNativeActivity)) {
+    multipleVersionReactNativeActivity = path.join(
+      shellPath,
+      'expoview/src/main/java/host/exp/exponent/experience/MultipleVersionReactNativeActivity.java'
+    );
+  }
+
   const filePathsToTransform = {
     // Remove obsolete `expoview-abiXX_X_X` dependencies
     appBuildGradle: path.join(shellPath, 'app/build.gradle'),
@@ -1644,10 +1657,7 @@ async function removeObsoleteSdks(shellPath, requiredSdkVersion) {
     // Remove obsolete includeUnimodulesProjects
     settingsBuildGradle: path.join(shellPath, 'settings.gradle'),
     // Remove no-longer-valid interfaces from MultipleVersionReactNativeActivity
-    multipleVersionReactNativeActivity: path.join(
-      shellPath,
-      'expoview/src/main/java/host/exp/exponent/experience/MultipleVersionReactNativeActivity.java'
-    ),
+    multipleVersionReactNativeActivity,
     // Remove invalid ABI versions from Constants
     constants: path.join(shellPath, 'expoview/src/main/java/host/exp/exponent/Constants.java'),
     // Remove non-existent DevSettingsActivities
