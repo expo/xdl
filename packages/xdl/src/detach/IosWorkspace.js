@@ -284,7 +284,14 @@ async function createDetachedAsync(context) {
   }
 
   logger.info('Installing required packages...');
-  await _installRequiredPackagesAsync(projectRootDirectory, standaloneSdkVersion);
+  if (context.type === 'service' && context.data.packagesToInstallWhenEjecting) {
+    await _installEjectingPackagesAsync(
+      projectRootDirectory,
+      context.data.packagesToInstallWhenEjecting
+    );
+  } else {
+    await _installRequiredPackagesAsync(projectRootDirectory, standaloneSdkVersion);
+  }
 
   logger.info('Naming iOS project...');
   await _renameAndMoveProjectFilesAsync(context, iosProjectDirectory, projectName);
@@ -320,6 +327,10 @@ async function _getPackagesToInstallWhenEjecting(sdkVersion) {
 // and not only when ejecting. These copies can be moved to one place if we decide to have just one flow for these two processes.
 async function _installRequiredPackagesAsync(projectRoot, sdkVersion) {
   const packagesToInstallWhenEjecting = await _getPackagesToInstallWhenEjecting(sdkVersion);
+  return _installEjectingPackagesAsync(projectRoot, packagesToInstallWhenEjecting);
+}
+
+async function _installEjectingPackagesAsync(projectRoot, packagesToInstallWhenEjecting) {
   const packagesToInstall = [];
 
   if (packagesToInstallWhenEjecting && typeof packagesToInstallWhenEjecting === 'object') {

@@ -4,6 +4,8 @@ type StandaloneContextDataType = 'user' | 'service';
 
 type StandaloneContextTestEnvironment = 'none' | 'local' | 'ci';
 
+type OverridenPackagesToInstallWhenEjecting = Record<string, string>;
+
 // currently unused
 export function isStandaloneContextDataUser(value: any): value is StandaloneContextDataUser {
   return value && typeof value.projectPath === 'string' && 'exp' in value;
@@ -44,6 +46,7 @@ export type StandaloneContextDataService = {
   privateConfig: any;
   testEnvironment: StandaloneContextTestEnvironment;
   shellAppSdkVersion: string;
+  packagesToInstallWhenEjecting: OverridenPackagesToInstallWhenEjecting | null;
 };
 
 class StandaloneContext {
@@ -80,7 +83,8 @@ class StandaloneContext {
     build: StandaloneBuildFlags,
     publishedUrl: string,
     releaseChannel: string,
-    shellAppSdkVersion: string
+    shellAppSdkVersion: string,
+    packagesToInstallWhenEjecting: OverridenPackagesToInstallWhenEjecting | null
   ): StandaloneContextService => {
     const context = new StandaloneContextService(
       {
@@ -90,6 +94,7 @@ class StandaloneContext {
         privateConfig,
         testEnvironment,
         shellAppSdkVersion,
+        packagesToInstallWhenEjecting,
       },
       {
         url: publishedUrl,

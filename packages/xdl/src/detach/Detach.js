@@ -379,6 +379,7 @@ async function prepareDetachedServiceContextIosAsync(projectDir, args) {
     /* testEnvironment */ 'none',
     buildFlags,
     null,
+    null,
     null
   );
   const { iosProjectDirectory, supportingDirectory } = IosWorkspace.getPaths(context);

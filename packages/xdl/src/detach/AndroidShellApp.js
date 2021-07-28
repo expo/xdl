@@ -368,7 +368,8 @@ exports.createAndroidShellAppAsync = async function createAndroidShellAppAsync(a
     /* testEnvironment */ 'none',
     buildFlags,
     url,
-    releaseChannel
+    releaseChannel,
+    null
   );
 
   await copyInitialShellAppFilesAsync(androidSrcPath, shellPath, false, sdkVersion);
