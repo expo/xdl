@@ -211,6 +211,9 @@ async function _createStandaloneContextAsync(args) {
   } else if (privateConfig?.bundleIdentifier) {
     bundleExecutable = pascalCase(privateConfig.bundleIdentifier);
   }
+  const packagesToInstallWhenEjecting = args.packagesToInstallWhenEjecting
+    ? JSON.parse(args.packagesToInstallWhenEjecting)
+    : null;
 
   const buildFlags = StandaloneBuildFlags.createIos(args.configuration, {
     workspaceSourcePath,
@@ -227,7 +230,8 @@ async function _createStandaloneContextAsync(args) {
     buildFlags,
     args.url,
     args.releaseChannel,
-    args.shellAppSdkVersion
+    args.shellAppSdkVersion,
+    packagesToInstallWhenEjecting
   );
   return context;
 }
