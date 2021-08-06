@@ -505,6 +505,8 @@ export async function runShellAppModificationsAsync(context, sdkVersion, buildMo
 
     if (majorSdkVersion >= 33) {
       const settingsGradle = path.join(shellPath, 'settings.gradle');
+      await regexFileAsync(/\/\* UNCOMMENT WHEN DISTRIBUTING/g, '', settingsGradle);
+      await regexFileAsync(/END UNCOMMENT WHEN DISTRIBUTING \*\//g, '', settingsGradle);
       await deleteLinesInFileAsync(
         'WHEN_DISTRIBUTING_REMOVE_FROM_HERE',
         'WHEN_DISTRIBUTING_REMOVE_TO_HERE',
