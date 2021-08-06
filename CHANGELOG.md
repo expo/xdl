@@ -8,6 +8,8 @@ This is the changelog of the maintenance fork of `xdl`.
 
 ### 🎉 New features
 
+- [xdl] Allows `UNCOMMENT WHEN DISTRIBUTING` section in the `settings.gradle`. ([#37](https://github.com/expo/xdl/pull/37) by [@lukmccall](https://github.com/lukmccall))
+
 ### 🐛 Bug fixes
 
 ## [Thu, 29 Jul 2021 14:25:44 +0800](https://github.com/expo/xdl/commit/fb6799a66d1d64ae582a615385448fc200c285e8)
