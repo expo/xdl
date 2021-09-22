@@ -941,6 +941,8 @@ export async function runShellAppModificationsAsync(context, sdkVersion, buildMo
       'android.permission.USE_FINGERPRINT', // expo-local-authentication
       'android.permission.USE_BIOMETRIC', // expo-local-authentication
       'android.permission.VIBRATE', // expo-haptics
+      'android.permission.ACCESS_MEDIA_LOCATION', // android-media-library
+
 
       // react native debugging permissions - not required for standalone apps
       'android.permission.READ_PHONE_STATE',
