@@ -943,7 +943,6 @@ export async function runShellAppModificationsAsync(context, sdkVersion, buildMo
       'android.permission.VIBRATE', // expo-haptics
       'android.permission.ACCESS_MEDIA_LOCATION', // android-media-library
 
-
       // react native debugging permissions - not required for standalone apps
       'android.permission.READ_PHONE_STATE',
       'android.permission.SYSTEM_ALERT_WINDOW',
