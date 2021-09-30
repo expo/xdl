@@ -87,6 +87,8 @@ const createExportOptionsPlist = ({
     <string>${exportMethod}</string>
     <key>teamID</key>
     <string>${teamID}</string>
+    <key>manageAppVersionAndBuildNumber</key>
+    <false/>
     <key>provisioningProfiles</key>
     <dict>
       <key>${bundleIdentifier}</key>
