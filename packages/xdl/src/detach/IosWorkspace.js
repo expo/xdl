@@ -189,7 +189,7 @@ async function _renderPodfileFromTemplateAsync(
       iosProjectDirectory,
       path.join(expoRootTemplateDirectory, 'ios', 'versioned-react-native')
     );
-    podfileTemplateFilename = 'ExpoKit-Podfile-versioned';
+    podfileTemplateFilename = 'ExpoKit-Podfile';
   } else {
     throw new Error(`Unsupported context type: ${context.type}`);
   }
@@ -283,15 +283,8 @@ async function createDetachedAsync(context) {
     );
   }
 
-  logger.info('Installing required packages...');
-  if (context.type === 'service' && context.data.packagesToInstallWhenEjecting) {
-    await _installEjectingPackagesAsync(
-      projectRootDirectory,
-      context.data.packagesToInstallWhenEjecting
-    );
-  } else {
-    await _installRequiredPackagesAsync(projectRootDirectory, standaloneSdkVersion);
-  }
+  logger.info('Installing packages...');
+  await installPackagesAsync(projectRootDirectory);
 
   logger.info('Naming iOS project...');
   await _renameAndMoveProjectFilesAsync(context, iosProjectDirectory, projectName);
@@ -313,33 +306,6 @@ async function createDetachedAsync(context) {
       rimrafDontThrow(expoRootTemplateDirectory);
     }
     await IosPlist.cleanBackupAsync(supportingDirectory, 'EXSDKVersions', false);
-  }
-}
-
-async function _getPackagesToInstallWhenEjecting(sdkVersion) {
-  const versions = await Versions.versionsAsync();
-  return versions.sdkVersions[sdkVersion]
-    ? versions.sdkVersions[sdkVersion].packagesToInstallWhenEjecting
-    : null;
-}
-
-// @tsapeta: Temporarily copied from Detach._detachAsync. This needs to be invoked also when creating a shell app workspace
-// and not only when ejecting. These copies can be moved to one place if we decide to have just one flow for these two processes.
-async function _installRequiredPackagesAsync(projectRoot, sdkVersion) {
-  const packagesToInstallWhenEjecting = await _getPackagesToInstallWhenEjecting(sdkVersion);
-  return _installEjectingPackagesAsync(projectRoot, packagesToInstallWhenEjecting);
-}
-
-async function _installEjectingPackagesAsync(projectRoot, packagesToInstallWhenEjecting) {
-  const packagesToInstall = [];
-
-  if (packagesToInstallWhenEjecting && typeof packagesToInstallWhenEjecting === 'object') {
-    Object.keys(packagesToInstallWhenEjecting).forEach(packageName => {
-      packagesToInstall.push(`${packageName}@${packagesToInstallWhenEjecting[packageName]}`);
-    });
-  }
-  if (packagesToInstall.length) {
-    await installPackagesAsync(projectRoot, packagesToInstall);
   }
 }
 

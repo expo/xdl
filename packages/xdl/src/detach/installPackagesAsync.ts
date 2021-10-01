@@ -7,7 +7,7 @@ import logger from './Logger';
 
 export default async function installPackagesAsync(
   projectDir: string,
-  packages: string[],
+  packages: string[] = [],
   options: any = {}
 ): Promise<void> {
   let packageManager = 'npm';
@@ -23,10 +23,17 @@ export default async function installPackagesAsync(
 
   if (packageManager === 'yarn') {
     logger.info(`Installing dependencies using Yarn...`);
-    await spawnAsync('yarnpkg', ['add', '--silent', ...packages], {
-      cwd: projectDir,
-      stdio: 'inherit',
-    });
+    if (packages.length === 0) {
+      await spawnAsync('yarnpkg', ['--silent'], {
+        cwd: projectDir,
+        stdio: 'inherit',
+      });
+    } else {
+      await spawnAsync('yarnpkg', ['add', '--silent', ...packages], {
+        cwd: projectDir,
+        stdio: 'inherit',
+      });
+    }
   } else {
     logger.info(`Installing dependencies using npm...`);
     if (!(await fs.pathExists(path.join(projectDir, 'node_modules')))) {

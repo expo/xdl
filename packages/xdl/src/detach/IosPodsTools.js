@@ -58,42 +58,6 @@ function _validatePodfileSubstitutions(substitutions) {
   return true;
 }
 
-function _renderExpoKitDependency(options, sdkVersion) {
-  const sdkMajorVersion = parseSdkMajorVersion(sdkVersion);
-  let attributes;
-  if (options.expoKitPath) {
-    attributes = {
-      path: path.join(options.expoKitPath, 'ios'),
-    };
-  } else if (options.expoKitTag) {
-    attributes = {
-      git: 'http://github.com/expo/expo.git',
-      tag: options.expoKitTag,
-    };
-  } else {
-    attributes = {
-      git: 'http://github.com/expo/expo.git',
-      branch: 'master',
-    };
-  }
-
-  // GL subspec is available as of SDK 26
-  // but removed together with CPP subspec in SDK 29
-  if (sdkMajorVersion < 26) {
-    attributes.subspecs = ['Core', 'CPP'];
-  } else if (sdkMajorVersion < 29 && !process.env.EXPO_UNIVERSE_DIR) {
-    attributes.subspecs = ['Core', 'CPP', 'GL'];
-  } else {
-    attributes.subspecs = ['Core'];
-  }
-  attributes.inhibit_warnings = true;
-
-  const dependency = `pod 'ExpoKit',
-${indentString(_renderDependencyAttributes(attributes), 2)}`;
-
-  return indentString(dependency, 2);
-}
-
 /**
  * @param sdkVersion if specified, indicates which sdkVersion this project uses
  *  as 'UNVERSIONED', e.g. if we are detaching a sdk15 project, we render
@@ -312,63 +276,6 @@ function _renderDetachedPostinstall(sdkVersion, isServiceContext) {
 `;
 }
 
-function _renderUnversionedPostinstall(sdkVersion) {
-  const podsToChangeDeployTarget = [
-    'Amplitude-iOS',
-    'Analytics',
-    'AppAuth',
-    'Branch',
-    'CocoaLumberjack',
-    'FBSDKCoreKit',
-    'FBSDKLoginKit',
-    'FBSDKShareKit',
-    'GPUImage',
-    'JKBigInteger2',
-  ];
-  const podsToChangeRB = `[${podsToChangeDeployTarget.map(pod => `'${pod}'`).join(',')}]`;
-  const sdkMajorVersion = parseSdkMajorVersion(sdkVersion);
-  const podNameExpression = sdkMajorVersion < 33 ? 'target.pod_name' : 'pod_name';
-  const targetExpression = sdkMajorVersion < 33 ? 'target' : 'target_installation_result';
-
-  // SDK41 drops support for iOS 10.0
-  const deploymentTarget = sdkMajorVersion > 40 ? '11.0' : '10.0';
-
-  const podsToChangeDeployTargetIfStart =
-    sdkMajorVersion <= 33 ? `      if ${podsToChangeRB}.include? ${podNameExpression}` : '';
-  const podsToChangeDeployTargetIfEnd = sdkMajorVersion <= 33 ? '      end' : '';
-  const gccPreprocessorDefinitionsCondition =
-    sdkMajorVersion < 36
-      ? `${podNameExpression} == 'React'`
-      : `${podNameExpression}.start_with?('React')`;
-
-  return `
-${podsToChangeDeployTargetIfStart}
-      ${targetExpression}.native_target.build_configurations.each do |config|
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '${deploymentTarget}'
-      end
-${podsToChangeDeployTargetIfEnd}
-
-      # Can't specify this in the React podspec because we need to use those podspecs for detached
-      # projects which don't reference ExponentCPP.
-      if ${podNameExpression}.start_with?('React')
-        ${targetExpression}.native_target.build_configurations.each do |config|
-          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '${deploymentTarget}'
-          config.build_settings['HEADER_SEARCH_PATHS'] ||= ['$(inherited)']
-        end
-      end
-
-      # Build React Native with RCT_DEV enabled and RCT_ENABLE_INSPECTOR and
-      # RCT_ENABLE_PACKAGER_CONNECTION disabled
-      next unless ${gccPreprocessorDefinitionsCondition}
-      ${targetExpression}.native_target.build_configurations.each do |config|
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'RCT_DEV=1'
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'RCT_ENABLE_INSPECTOR=0'
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'ENABLE_PACKAGER_CONNECTION=0'
-      end
-`;
-}
-
 function _renderTestTarget(reactNativePath) {
   return `
   target 'ExponentIntegrationTests' do
@@ -416,73 +323,6 @@ async function renderExpoKitPodspecAsync(pathToTemplate, pathToOutput, moreSubst
   }
 
   await fs.writeFile(pathToOutput, result);
-}
-
-function _renderUnversionedUniversalModulesDependencies(
-  universalModules,
-  universalModulesPath,
-  sdkVersion
-) {
-  const sdkMajorVersion = parseSdkMajorVersion(sdkVersion);
-
-  if (sdkMajorVersion >= 33) {
-    const excludedUnimodules = [
-      'expo-bluetooth',
-      'expo-in-app-purchases',
-      'expo-payments-stripe',
-      'expo-module-template',
-      'expo-image',
-    ];
-
-    if (sdkMajorVersion < 39) {
-      excludedUnimodules.push('expo-splash-screen', 'expo-updates');
-    }
-
-    const expoModulesThatAreNotUnimodules = [];
-    if (sdkMajorVersion >= 39) {
-      expoModulesThatAreNotUnimodules.push(
-        `pod 'EXRandom', path: '${universalModulesPath}/expo-random/ios'`
-      );
-    }
-
-    return indentString(
-      `
-# Install unimodules
-require_relative '../node_modules/react-native-unimodules/cocoapods.rb'
-use_unimodules!(
-  modules_paths: ['${universalModulesPath}'],
-  exclude: [
-    ${excludedUnimodules.map(module => `'${module}'`).join(',\n    ')}
-  ],
-)
-
-# Expo modules that are not unimodules
-${expoModulesThatAreNotUnimodules.join('\n')}
-`,
-      2
-    );
-  } else {
-    return indentString(
-      universalModules
-        .map(moduleInfo =>
-          _renderUnversionedUniversalModuleDependency(
-            moduleInfo.podName,
-            moduleInfo.path,
-            sdkVersion
-          )
-        )
-        .join('\n'),
-      2
-    );
-  }
-}
-
-function _renderUnversionedUniversalModuleDependency(podName, path, sdkVersion) {
-  const attributes = {
-    path,
-  };
-  return `pod '${podName}',
-${indentString(_renderDependencyAttributes(attributes), 2)}`;
 }
 
 /**
@@ -552,21 +392,12 @@ async function renderPodfileAsync(
 
   const substitutions = {
     EXPONENT_CLIENT_DEPS: podDependencies,
-    EXPOKIT_DEPENDENCY: _renderExpoKitDependency(expoKitDependencyOptions, sdkVersion),
-    PODFILE_UNVERSIONED_EXPO_MODULES_DEPENDENCIES: _renderUnversionedUniversalModulesDependencies(
-      universalModules,
-      moreSubstitutions.UNIVERSAL_MODULES_PATH,
-      sdkVersion
-    ),
     PODFILE_UNVERSIONED_RN_DEPENDENCY: _renderUnversionedReactNativeDependency(
       rnDependencyOptions,
       sdkVersion
     ),
-    PODFILE_UNVERSIONED_POSTINSTALL: _renderUnversionedPostinstall(sdkVersion),
     PODFILE_DETACHED_POSTINSTALL: _renderDetachedPostinstall(sdkVersion, false),
-    PODFILE_DETACHED_SERVICE_POSTINSTALL: _renderDetachedPostinstall(sdkVersion, true),
     PODFILE_VERSIONED_RN_DEPENDENCIES: versionedDependencies,
-    PODFILE_VERSIONED_POSTINSTALLS: versionedPostinstalls,
     PODFILE_TEST_TARGET: shellAppSdkVersion ? '' : _renderTestTarget(reactNativePath),
     ...moreSubstitutions,
   };
