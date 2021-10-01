@@ -518,20 +518,23 @@ export async function runShellAppModificationsAsync(context, sdkVersion, buildMo
       await fs.writeFile(path.join(shellPath, 'settings.gradle'), `include ':app'\n`);
     }
 
-    await regexFileAsync(
-      'TEMPLATE_INITIAL_URL',
-      url,
-      path.join(
-        shellPath,
-        'app',
-        'src',
-        'main',
-        'java',
-        'host',
-        'exp',
-        'exponent',
-        'MainActivity.java'
-      )
+    await Promise.all(
+      ['MainActivity.java', 'MainActivity.kt'].map(file => {
+        const target = path.join(
+          shellPath,
+          'app',
+          'src',
+          'main',
+          'java',
+          'host',
+          'exp',
+          'exponent',
+          file
+        );
+        return fs.existsSync(target)
+          ? regexFileAsync('TEMPLATE_INITIAL_URL', url, target)
+          : Promise.resolve();
+      })
     );
 
     const runShPath = path.join(shellPath, 'run.sh');
@@ -784,6 +787,16 @@ export async function runShellAppModificationsAsync(context, sdkVersion, buildMo
   await regexFileAsync(
     '"app_name">Expo Go<',
     `"app_name">${xmlWeirdAndroidEscape(name)}<`,
+    path.join(shellPath, 'app', 'src', 'main', 'res', 'values', 'strings.xml')
+  );
+  await regexFileAsync(
+    '"versioned_app_name">Expo Go<',
+    `"versioned_app_name">${xmlWeirdAndroidEscape(name)}<`,
+    path.join(shellPath, 'app', 'src', 'main', 'res', 'values', 'strings.xml')
+  );
+  await regexFileAsync(
+    /^\s*<string name="unversioned_app_name">Expo Go \(unversioned\)<\/string>\s*$/m,
+    '',
     path.join(shellPath, 'app', 'src', 'main', 'res', 'values', 'strings.xml')
   );
 
