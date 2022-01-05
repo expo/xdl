@@ -9,7 +9,7 @@ import { saveUrlToPathAsync } from './ExponentTools';
 import { AnyStandaloneContext } from './StandaloneContext';
 
 const EXPO_DOMAINS = ['expo.io', 'exp.host', 'expo.test', 'localhost'];
-export const DEFAULT_CDN_HOST = 'https://d1wp6m56sqw74a.cloudfront.net';
+export const DEFAULT_CDN_HOST = 'https://classic-assets.eascdn.net';
 export const ASSETS_DIR_DEFAULT_URL = `${DEFAULT_CDN_HOST}/~assets`;
 
 type UrlResolver = (hash: string) => string;

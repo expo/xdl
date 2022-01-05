@@ -18,7 +18,7 @@ import UserManager from './User';
 import * as ExpSchema from './project/ExpSchema';
 import * as ProjectUtils from './project/ProjectUtils';
 
-const EXPO_CDN = 'https://d1wp6m56sqw74a.cloudfront.net';
+const EXPO_CDN = 'https://classic-assets.eascdn.net';
 
 type ManifestAsset = { fileHashes: string[]; files: string[]; hash: string };
 
