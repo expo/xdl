@@ -94,7 +94,7 @@ const createExportOptionsPlist = ({
       <key>${bundleIdentifier}</key>
       <string>${provisioningProfileUUID}</string>
     </dict>
-    ${exportMethod === 'ad-hoc' || exportMethod === 'enterprise' ? disableBitcodeCompiling : ''}
+    ${disableBitcodeCompiling}
   </dict>
 </plist>`;
 };
