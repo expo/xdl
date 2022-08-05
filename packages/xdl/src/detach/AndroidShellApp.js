@@ -281,6 +281,7 @@ export async function copyInitialShellAppFilesAsync(
   await copyToShellApp('gradle.properties');
   await copyToShellApp('gradlew');
   await copyToShellApp('settings.gradle');
+  await copyToShellApp('versioning_linking.gradle');
   await copyToShellApp('debug.keystore');
   await copyToShellApp('run.sh');
   await copyToShellApp('maven'); // this is a symlink
