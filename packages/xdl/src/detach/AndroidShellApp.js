@@ -377,6 +377,7 @@ exports.createAndroidShellAppAsync = async function createAndroidShellAppAsync(a
   await removeObsoleteSdks(shellPath, sdkVersion);
   await runShellAppModificationsAsync(context, sdkVersion, buildMode);
   await prepareEnabledModules(shellPath, modules);
+  await removeReactNativeSkiaIfNeeded(shellPath, sdkVersion, manifest.dependencies);
 
   if (!args.skipBuild) {
     await buildShellAppAsync(context, sdkVersion, buildType, buildMode, gradleArgs);
@@ -1721,4 +1722,28 @@ async function prepareEnabledModules(shellPath, modules) {
       )
     );
   }
+}
+
+// Since @shopify/react-native-skia increases app size much,
+// the function is to remove skia if the app doesn't have skia in dependencies.
+async function removeReactNativeSkiaIfNeeded(shellPath, sdkVersion, dependencies) {
+  if (parseSdkMajorVersion(sdkVersion) < 46) {
+    return;
+  }
+  const hasSkiaDeps = dependencies.includes('@shopify/react-native-skia');
+  if (hasSkiaDeps) {
+    return;
+  }
+  const gradleFile = path.join(shellPath, 'app', 'build.gradle');
+  let content = await fs.readFile(gradleFile, 'utf8');
+  const pattern = new RegExp(
+    `(  implementation\\('host\\.exp\\.exponent:expoview:\\d+\\.\\d+\\.\\d+@aar'\\) \\{\n` +
+      `    transitive = true\n)`,
+    'gm'
+  );
+  content = content.replace(
+    pattern,
+    `$1    exclude group: 'com.shopify', module: 'react-native-skia'\n`
+  );
+  await fs.writeFile(gradleFile, content);
 }
