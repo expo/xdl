@@ -199,17 +199,6 @@ async function _renderVersionedReactNativeDependenciesAsync(
   return result;
 }
 
-async function _renderVersionedReactNativePostinstallsAsync(
-  templatesDirectory,
-  shellAppSdkVersion
-) {
-  const filterFn = createSdkFilterFn(shellAppSdkVersion);
-  return _concatTemplateFilesInDirectoryAsync(
-    path.join(templatesDirectory, 'versioned-react-native', 'postinstalls'),
-    filterFn
-  );
-}
-
 async function _concatTemplateFilesInDirectoryAsync(directory, filterFn) {
   const templateFilenames = globSync('*.rb', { absolute: true, cwd: directory }).sort();
   const filteredTemplateFilenames = filterFn
@@ -352,15 +341,6 @@ async function renderPodfileAsync(
     rnDependencyOptions = {};
   }
 
-  const expoKitPath = moreSubstitutions.EXPOKIT_PATH;
-  const expoKitTag = moreSubstitutions.EXPOKIT_TAG;
-  let expoKitDependencyOptions = {};
-  if (expoKitPath) {
-    expoKitDependencyOptions = { expoKitPath };
-  } else if (expoKitTag) {
-    expoKitDependencyOptions = { expoKitTag };
-  }
-
   let versionedRnPath = moreSubstitutions.VERSIONED_REACT_NATIVE_PATH;
   if (!versionedRnPath) {
     versionedRnPath = './versioned-react-native';
@@ -374,10 +354,6 @@ async function renderPodfileAsync(
     templatesDirectory,
     versionedRnPath,
     rnExpoSubspecs,
-    shellAppSdkVersion
-  );
-  const versionedPostinstalls = await _renderVersionedReactNativePostinstallsAsync(
-    templatesDirectory,
     shellAppSdkVersion
   );
   const podDependencies = await _renderPodDependenciesAsync(
